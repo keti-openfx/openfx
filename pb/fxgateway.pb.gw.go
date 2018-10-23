@@ -107,6 +107,33 @@ func request_FxGateway_GetMeta_0(ctx context.Context, marshaler runtime.Marshale
 
 }
 
+func request_FxGateway_GetLog_0(ctx context.Context, marshaler runtime.Marshaler, client FxGatewayClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq FunctionRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["FunctionName"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "FunctionName")
+	}
+
+	protoReq.FunctionName, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "FunctionName", err)
+	}
+
+	msg, err := client.GetLog(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
 func request_FxGateway_ReplicaUpdate_0(ctx context.Context, marshaler runtime.Marshaler, client FxGatewayClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ScaleServiceRequest
 	var metadata runtime.ServerMetadata
@@ -321,6 +348,35 @@ func RegisterFxGatewayHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 
 	})
 
+	mux.Handle("GET", pattern_FxGateway_GetLog_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		if cn, ok := w.(http.CloseNotifier); ok {
+			go func(done <-chan struct{}, closed <-chan bool) {
+				select {
+				case <-done:
+				case <-closed:
+					cancel()
+				}
+			}(ctx.Done(), cn.CloseNotify())
+		}
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_FxGateway_GetLog_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FxGateway_GetLog_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("PUT", pattern_FxGateway_ReplicaUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -422,6 +478,8 @@ var (
 
 	pattern_FxGateway_GetMeta_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"system", "function", "FunctionName"}, ""))
 
+	pattern_FxGateway_GetLog_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"system", "function-log", "FunctionName"}, ""))
+
 	pattern_FxGateway_ReplicaUpdate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"system", "scale-function"}, ""))
 
 	pattern_FxGateway_Info_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"system", "info"}, ""))
@@ -439,6 +497,8 @@ var (
 	forward_FxGateway_Update_0 = runtime.ForwardResponseMessage
 
 	forward_FxGateway_GetMeta_0 = runtime.ForwardResponseMessage
+
+	forward_FxGateway_GetLog_0 = runtime.ForwardResponseMessage
 
 	forward_FxGateway_ReplicaUpdate_0 = runtime.ForwardResponseMessage
 

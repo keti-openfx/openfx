@@ -9,3 +9,7 @@ build:
 	docker build -t ${REGISTRY}/fxgateway:$(TAG) .
 push:
 	docker push ${REGISTRY}/fxgateway:$(TAG)
+git:
+	git add .
+	git commit -m "$m"
+	git push origin master

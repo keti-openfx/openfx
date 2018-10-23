@@ -34,6 +34,30 @@ const (
         ]
       }
     },
+    "/system/function-log/{FunctionName}": {
+      "get": {
+        "operationId": "GetLog",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/pbMessage"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "FunctionName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FxGateway"
+        ]
+      }
+    },
     "/system/function/{FunctionName}": {
       "get": {
         "operationId": "GetMeta",
