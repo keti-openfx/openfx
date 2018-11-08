@@ -13,7 +13,7 @@ import (
 
 func GetLog(functionName string, functionNamespace string, clientset *kubernetes.Clientset) (string, error) {
 	var opts metav1.ListOptions
-	opts.LabelSelector = fmt.Sprintf("openfx-fn=%s", functionName)
+	opts.LabelSelector = fmt.Sprintf("openfx_fn=%s", functionName)
 	podList, err := clientset.CoreV1().Pods(functionNamespace).List(opts)
 	if err != nil {
 		log.Println(err)

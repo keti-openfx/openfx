@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keti-openfx/openfx-gateway/config"
+	"github.com/keti-openfx/openfx-gateway/metrics"
 	"github.com/keti-openfx/openfx-gateway/pb"
 	"github.com/keti-openfx/openfx-gateway/service"
 	"github.com/soheilhy/cmux"
@@ -17,27 +18,34 @@ import (
 )
 
 type FxGateway struct {
-	conf       config.FxGatewayConfig
-	httpServer *http.Server
-	grpcServer *grpc.Server
-	kubeClient *kubernetes.Clientset
+	conf           config.FxGatewayConfig
+	httpServer     *http.Server
+	grpcServer     *grpc.Server
+	kubeClient     *kubernetes.Clientset
+	metricsOptions metrics.MetricOptions
+	metricsFetcher metrics.PrometheusQueryFetcher
 }
 
 func NewFxGateway(c config.FxGatewayConfig, k *kubernetes.Clientset) *FxGateway {
 	return &FxGateway{
-		conf:       c,
-		kubeClient: k,
+		conf:           c,
+		kubeClient:     k,
+		metricsOptions: metrics.BuildMetricsOptions(),
+		metricsFetcher: metrics.NewPrometheusQuery(c.PrometheusHost, c.PrometheusPort, &http.Client{}),
 	}
 }
 
 func (f *FxGateway) Invoke(c context.Context, s *pb.InvokeServiceRequest) (*pb.Message, error) {
 	start := time.Now()
-	output, err := service.Invoke(s.Service, f.conf.FunctionNamespace, f.conf.FxWatcherPort, s.Input)
-	seconds := time.Since(start)
-	log.Printf("invoke method time:%vs", seconds.Seconds)
+	output, err := service.Invoke(s.Service, f.conf.FunctionNamespace, f.conf.FxWatcherPort, s.Input, f.conf.InvokeTimeout)
+	end := time.Since(start)
 	if err != nil {
 		return nil, err
 	}
+	// For Monitoring /////////////////////////////////////////////////////////
+	// function이 호출될 때마다 invoke count, time 정보 수집
+	f.metricsOptions.Notify(s.Service, end, "OK")
+	//////////////////////////////////////////////////////////////////////////
 	return &pb.Message{Msg: output}, nil
 }
 func (f *FxGateway) List(c context.Context, s *pb.Empty) (*pb.Functions, error) {
@@ -45,7 +53,11 @@ func (f *FxGateway) List(c context.Context, s *pb.Empty) (*pb.Functions, error) 
 	if err != nil {
 		return nil, err
 	}
-	return &pb.Functions{Functions: functions}, nil
+	// For Monitoring /////////////////////////////////////////////////////////
+	// function 정보 요청이 들어오면, prometheus 서버에 쿼리를 보내서 수집한 매트릭 정보를 가져옴
+	fns := metrics.AddMetricsFunctions(functions, f.metricsFetcher)
+	//////////////////////////////////////////////////////////////////////////
+	return &pb.Functions{Functions: fns}, nil
 }
 func (f *FxGateway) Deploy(c context.Context, s *pb.CreateFunctionRequest) (*pb.Message, error) {
 	deployConfig := &service.DeployHandlerConfig{
@@ -80,6 +92,10 @@ func (f *FxGateway) GetMeta(c context.Context, s *pb.FunctionRequest) (*pb.Funct
 	if err != nil {
 		return nil, err
 	}
+	// For Monitoring /////////////////////////////////////////////////////////
+	// function 정보 요청이 들어오면, prometheus 서버에 쿼리를 보내서 수집한 매트릭 정보를 가져옴
+	fn = metrics.AddMetricsFunction(fn, f.metricsFetcher)
+	///////////////////////////////////////////////////////////////////////////
 	return fn, nil
 }
 func (f *FxGateway) GetLog(c context.Context, s *pb.FunctionRequest) (*pb.Message, error) {
@@ -109,8 +125,22 @@ func (f *FxGateway) HealthCheck(c context.Context, s *pb.Empty) (*pb.Message, er
 
 // -----------------------------------------------------------------------------
 
-// Start the microserver
+// Start Openfx Gateway
 func (f *FxGateway) Start() error {
+
+	// For Monitoring /////////////////////////////////////////////////////////
+	//
+	//
+	// 매트릭 정보를 수집하는 Exporter를 생성
+	exporter := metrics.NewExporter(f.metricsOptions)
+	// 5초마다 function들의 Replica(복제본 수) 정보  수집
+	servicePollInterval := time.Second * 5
+	exporter.StartServiceWatcher(f.conf.FunctionNamespace, f.kubeClient, f.metricsOptions, servicePollInterval)
+	// Prometheus 매트릭 수집기 등록
+	metrics.RegisterExporter(exporter)
+
+	///////////////////////////////////////////////////////////////////////////
+
 	var err error
 
 	// Initialize listener
@@ -139,7 +169,7 @@ func (f *FxGateway) Start() error {
 	}
 
 	// initialize HTTP server
-	f.httpServer, err = prepareHTTP(ctx, fmt.Sprintf("localhost:%d", f.conf.TCPPort), f.conf.FunctionNamespace, f.conf.FxWatcherPort)
+	f.httpServer, err = prepareHTTP(ctx, fmt.Sprintf("localhost:%d", f.conf.TCPPort), f.conf.FunctionNamespace, f.conf.FxWatcherPort, f.conf.InvokeTimeout, f.conf.ReadTimeout, f.conf.WriteTimeout, f.conf.IdleTimeout)
 	if err != nil {
 		log.Fatalln("Unable to initialize HTTP server instance")
 		return err

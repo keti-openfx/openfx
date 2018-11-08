@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/keti-openfx/openfx-gateway/metrics"
 	"github.com/keti-openfx/openfx-gateway/pb"
 	"github.com/keti-openfx/openfx-gateway/pkg/ui/data/swagger"
 	"github.com/keti-openfx/openfx-gateway/service"
@@ -20,14 +21,15 @@ import (
 	"google.golang.org/grpc"
 )
 
-func prepareHTTP(ctx context.Context, serverName string, functionNamespace string, fxWatcherPort int) (*http.Server, error) {
+func prepareHTTP(ctx context.Context, serverName string, functionNamespace string, fxWatcherPort int, timeout, readtimeout, writetimeout, idletimeout time.Duration) (*http.Server, error) {
 	// HTTP router
 	router := http.NewServeMux()
+	router.Handle("/metrics", metrics.PrometheusHandler())
 	router.HandleFunc("/swagger.json", func(w http.ResponseWriter, req *http.Request) {
 		io.Copy(w, strings.NewReader(pb.Swagger))
 	})
 	serveSwagger(router)
-	router.HandleFunc("/function/", makeHttpInvoke(functionNamespace, fxWatcherPort))
+	router.HandleFunc("/function/", makeHttpInvoke(functionNamespace, fxWatcherPort, timeout))
 
 	//// initialize grpc-gateway
 	// gRPC dialup options
@@ -63,13 +65,13 @@ func prepareHTTP(ctx context.Context, serverName string, functionNamespace strin
 	return &http.Server{
 		Addr:         serverName,
 		Handler:      router,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  120 * time.Second,
+		ReadTimeout:  readtimeout,
+		WriteTimeout: writetimeout,
+		IdleTimeout:  idletimeout,
 	}, nil
 }
 
-func makeHttpInvoke(functionNamespace string, fxWatcherPort int) http.HandlerFunc {
+func makeHttpInvoke(functionNamespace string, fxWatcherPort int, timeout time.Duration) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -106,7 +108,7 @@ func makeHttpInvoke(functionNamespace string, fxWatcherPort int) http.HandlerFun
 				w.Write([]byte(buf.Bytes()))
 				return
 			}
-			output, err := service.Invoke(serviceName, functionNamespace, fxWatcherPort, body)
+			output, err := service.Invoke(serviceName, functionNamespace, fxWatcherPort, body, timeout)
 			if err != nil {
 				log.Println(err.Error())
 				buf := bytes.NewBufferString("Can't reach service: " + serviceName + "\n")

@@ -65,7 +65,7 @@ func updateDeploymentSpec(
 		deployment.Spec.Template.Spec.NodeSelector = createSelector(request.Constraints)
 
 		labels := map[string]string{
-			"fx_function": request.Service,
+			"openfx_fn": request.Service,
 			"uid":         fmt.Sprintf("%d", time.Now().Nanosecond()),
 		}
 

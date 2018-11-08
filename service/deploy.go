@@ -127,7 +127,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 
 	initialReplicas := int32p(initialReplicasCount)
 	labels := map[string]string{
-		"fx_function": req.Service,
+		"openfx_fn": req.Service,
 	}
 
 	if req.Labels != nil {
@@ -168,7 +168,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 		Spec: v1beta1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"fx_function": req.Service,
+					"openfx_fn": req.Service,
 				},
 			},
 			Replicas: initialReplicas,
@@ -235,7 +235,7 @@ func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int) *v1.Servi
 		Spec: v1.ServiceSpec{
 			Type: v1.ServiceTypeClusterIP,
 			Selector: map[string]string{
-				"fx_function": req.Service,
+				"openfx_fn": req.Service,
 			},
 			Ports: []v1.ServicePort{
 				{

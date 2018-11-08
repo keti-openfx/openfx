@@ -41,7 +41,7 @@ func Delete(functionName, functionNamespace string, clientset *kubernetes.Client
 
 func isFunction(deployment *v1beta1.Deployment) bool {
 	if deployment != nil {
-		if _, found := deployment.Labels["fx_function"]; found {
+		if _, found := deployment.Labels["openfx_fn"]; found {
 			return true
 		}
 	}

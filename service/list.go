@@ -13,7 +13,7 @@ import (
 
 func List(functionNamespace string, clientset *kubernetes.Clientset) ([]*pb.Function, error) {
 	listOpts := metav1.ListOptions{
-		LabelSelector: "fx_function",
+		LabelSelector: "openfx_fn",
 	}
 	res, err := clientset.ExtensionsV1beta1().Deployments(functionNamespace).List(listOpts)
 
