@@ -80,22 +80,6 @@ const (
         "tags": [
           "FxGateway"
         ]
-      }
-    },
-    "/system/functions": {
-      "get": {
-        "operationId": "List",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/pbFunctions"
-            }
-          }
-        },
-        "tags": [
-          "FxGateway"
-        ]
       },
       "delete": {
         "operationId": "Delete",
@@ -110,11 +94,27 @@ const (
         "parameters": [
           {
             "name": "FunctionName",
-            "in": "query",
-            "required": false,
+            "in": "path",
+            "required": true,
             "type": "string"
           }
         ],
+        "tags": [
+          "FxGateway"
+        ]
+      }
+    },
+    "/system/functions": {
+      "get": {
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/pbFunctions"
+            }
+          }
+        },
         "tags": [
           "FxGateway"
         ]

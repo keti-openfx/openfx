@@ -21,11 +21,37 @@ import (
 	"google.golang.org/grpc"
 )
 
+// allowCORS allows Cross Origin Resoruce Sharing from any origin.
+// Don't do this without consideration in production systems.
+func allowCORS(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if origin := r.Header.Get("Origin"); origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			if r.Method == "OPTIONS" && r.Header.Get("Access-Control-Request-Method") != "" {
+				preflightHandler(w, r)
+				return
+			}
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+// preflightHandler adds the necessary headers in order to serve
+// CORS from any origin using the methods "GET", "HEAD", "POST", "PUT", "DELETE"
+// We insist, don't do this without consideration in production systems.
+func preflightHandler(w http.ResponseWriter, r *http.Request) {
+	headers := []string{"Content-Type", "Accept"}
+	w.Header().Set("Access-Control-Allow-Headers", strings.Join(headers, ","))
+	methods := []string{"GET", "HEAD", "POST", "PUT", "DELETE"}
+	w.Header().Set("Access-Control-Allow-Methods", strings.Join(methods, ","))
+	log.Printf("preflight request for %s", r.URL.Path)
+}
+
 func prepareHTTP(ctx context.Context, serverName string, functionNamespace string, fxWatcherPort int, timeout, readtimeout, writetimeout, idletimeout time.Duration) (*http.Server, error) {
 	// HTTP router
 	router := http.NewServeMux()
 	router.Handle("/metrics", metrics.PrometheusHandler())
-	router.HandleFunc("/swagger.json", func(w http.ResponseWriter, req *http.Request) {
+	router.HandleFunc("/swagger.json", func(w http.ResponseWriter, r *http.Request) {
 		io.Copy(w, strings.NewReader(pb.Swagger))
 	})
 	serveSwagger(router)
@@ -40,6 +66,7 @@ func prepareHTTP(ctx context.Context, serverName string, functionNamespace strin
 	}
 
 	// gRPC dialup options
+	// gRPC server에 대한 클라이언트 연결
 	conn, err := grpc.Dial(serverName, opts...)
 	if err != nil {
 		log.Fatalf("fail to dial: %v", err)
@@ -53,6 +80,8 @@ func prepareHTTP(ctx context.Context, serverName string, functionNamespace strin
 	)
 
 	// Register Gateway endpoints
+	// FxGateway 서비스에 대한 http 핸들러를 mux에 등록
+	// 핸들러는 conn을 통해 grpc 엔드 포인트로 요청 전달
 	err = pb.RegisterFxGatewayHandler(ctx, gwMux, conn)
 	if err != nil {
 		return nil, err
@@ -64,7 +93,7 @@ func prepareHTTP(ctx context.Context, serverName string, functionNamespace strin
 	// Return HTTP Server instance
 	return &http.Server{
 		Addr:         serverName,
-		Handler:      router,
+		Handler:      allowCORS(router),
 		ReadTimeout:  readtimeout,
 		WriteTimeout: writetimeout,
 		IdleTimeout:  idletimeout,

@@ -27,11 +27,12 @@ func Invoke(service string, functionNamespace string, fxWatcherPort int, input [
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
+	start := time.Now()
 	r, err := c.Call(ctx, &pb.Request{Input: input, Info: &pb.Info{FunctionName: service, Trigger: &pb.Trigger{Name: "grpc", Time: time.Now().UTC().String()}}})
 	if err != nil {
 		log.Printf("could not invoke: %s - %s\n", service, err.Error())
 		if grpc.Code(err) == codes.DeadlineExceeded {
-			return "", status.Error(codes.DeadlineExceeded, fmt.Sprintf("Function timed out after %fs", timeout.Seconds()))
+			return "", status.Error(codes.DeadlineExceeded, fmt.Sprintf("Function timed out after %fs", time.Since(start).Seconds()))
 		}
 		return "", status.Error(codes.Internal, err.Error())
 	}
