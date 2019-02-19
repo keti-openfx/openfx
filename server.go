@@ -11,13 +11,13 @@ import (
 	"github.com/keti-openfx/openfx-gateway/config"
 	"github.com/keti-openfx/openfx-gateway/metrics"
 	"github.com/keti-openfx/openfx-gateway/pb"
-	"github.com/keti-openfx/openfx-gateway/service"
+	"github.com/keti-openfx/openfx-gateway/cmd"
 	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
 )
 
-// FxGateway는 gRPC service 구현체
+/* FxGateway는 gRPC service 구현체 */
 type FxGateway struct {
 	//환경 변수를 통해 설정한 config
 	conf       config.FxGatewayConfig
@@ -45,7 +45,7 @@ func NewFxGateway(c config.FxGatewayConfig, k *kubernetes.Clientset) *FxGateway 
 // function 호출
 func (f *FxGateway) Invoke(c context.Context, s *pb.InvokeServiceRequest) (*pb.Message, error) {
 	start := time.Now()
-	output, err := service.Invoke(s.Service, f.conf.FunctionNamespace, f.conf.FxWatcherPort, s.Input, f.conf.InvokeTimeout)
+	output, err := cmd.Invoke(s.Service, f.conf.FunctionNamespace, f.conf.FxWatcherPort, s.Input, f.conf.InvokeTimeout)
 	end := time.Since(start)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (f *FxGateway) Invoke(c context.Context, s *pb.InvokeServiceRequest) (*pb.M
 // grpc handler
 // function list 조회
 func (f *FxGateway) List(c context.Context, s *pb.Empty) (*pb.Functions, error) {
-	functions, err := service.List(f.conf.FunctionNamespace, f.kubeClient)
+	functions, err := cmd.List(f.conf.FunctionNamespace, f.kubeClient)
 	if err != nil {
 		return nil, err
 	}
@@ -74,14 +74,14 @@ func (f *FxGateway) List(c context.Context, s *pb.Empty) (*pb.Functions, error) 
 // grpc handler
 // function 배포
 func (f *FxGateway) Deploy(c context.Context, s *pb.CreateFunctionRequest) (*pb.Message, error) {
-	deployConfig := &service.DeployHandlerConfig{
+	deployConfig := &cmd.DeployHandlerConfig{
 		EnableHttpProbe:   f.conf.EnableHttpProbe,
 		ImagePullPolicy:   f.conf.ImagePullPolicy,
 		FunctionNamespace: f.conf.FunctionNamespace,
 		FxWatcherPort:     f.conf.FxWatcherPort,
 		SecretMountPath:   f.conf.SecretMountPath,
 	}
-	err := service.Deploy(s, f.kubeClient, deployConfig)
+	err := cmd.Deploy(s, f.kubeClient, deployConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (f *FxGateway) Deploy(c context.Context, s *pb.CreateFunctionRequest) (*pb.
 // grpc handler
 // function 삭제
 func (f *FxGateway) Delete(c context.Context, s *pb.DeleteFunctionRequest) (*pb.Message, error) {
-	err := service.Delete(s.FunctionName, f.conf.FunctionNamespace, f.kubeClient)
+	err := cmd.Delete(s.FunctionName, f.conf.FunctionNamespace, f.kubeClient)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (f *FxGateway) Delete(c context.Context, s *pb.DeleteFunctionRequest) (*pb.
 // grpc handler
 // function 업데이트
 func (f *FxGateway) Update(c context.Context, s *pb.CreateFunctionRequest) (*pb.Message, error) {
-	err := service.Update(f.conf.FunctionNamespace, s, f.kubeClient, f.conf.SecretMountPath)
+	err := cmd.Update(f.conf.FunctionNamespace, s, f.kubeClient, f.conf.SecretMountPath)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (f *FxGateway) Update(c context.Context, s *pb.CreateFunctionRequest) (*pb.
 // grpc handler
 // function 정보 조회
 func (f *FxGateway) GetMeta(c context.Context, s *pb.FunctionRequest) (*pb.Function, error) {
-	fn, err := service.GetMeta(s.FunctionName, f.conf.FunctionNamespace, f.kubeClient)
+	fn, err := cmd.GetMeta(s.FunctionName, f.conf.FunctionNamespace, f.kubeClient)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (f *FxGateway) GetMeta(c context.Context, s *pb.FunctionRequest) (*pb.Funct
 // grpc handler
 // function의 출력과 에러 조회
 func (f *FxGateway) GetLog(c context.Context, s *pb.FunctionRequest) (*pb.Message, error) {
-	log, err := service.GetLog(s.FunctionName, f.conf.FunctionNamespace, f.kubeClient)
+	log, err := cmd.GetLog(s.FunctionName, f.conf.FunctionNamespace, f.kubeClient)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (f *FxGateway) GetLog(c context.Context, s *pb.FunctionRequest) (*pb.Messag
 // grpc handler
 // function의 복제본 수 업데이트
 func (f *FxGateway) ReplicaUpdate(c context.Context, s *pb.ScaleServiceRequest) (*pb.Message, error) {
-	err := service.ReplicaUpdate(f.conf.FunctionNamespace, s, f.kubeClient)
+	err := cmd.ReplicaUpdate(f.conf.FunctionNamespace, s, f.kubeClient)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (f *FxGateway) ReplicaUpdate(c context.Context, s *pb.ScaleServiceRequest) 
 // grpc handler
 // gateway의 버전 정보 조회
 func (f *FxGateway) Info(c context.Context, s *pb.Empty) (*pb.Message, error) {
-	info, err := service.Info(f.kubeClient)
+	info, err := cmd.Info(f.kubeClient)
 	if err != nil {
 		return nil, err
 	}
@@ -160,14 +160,15 @@ func (f *FxGateway) HealthCheck(c context.Context, s *pb.Empty) (*pb.Message, er
 
 // -----------------------------------------------------------------------------
 
-// Start Openfx Gateway
-// 멀티플렉서 생성, 핸들러 등록, grpc/http 서버 시작
+/* 
+ * Start Openfx Gateway
+ * 멀티플렉서 생성, 핸들러 등록, grpc/http 서버 시작
+ */
 func (f *FxGateway) Start() error {
 
-	// For Monitoring /////////////////////////////////////////////////////////
-	//
-	//
-	// 매트릭 정보를 수집하는 Exporter를 생성
+	/* For Monitoring **********************************************************/
+	/*	
+	/* 매트릭 정보를 수집하는 Exporter를 생성 */
 	exporter := metrics.NewExporter(f.metricsOptions)
 	// 5초마다 function들의 Replica(복제본 수) 정보  수집
 	servicePollInterval := time.Second * 5

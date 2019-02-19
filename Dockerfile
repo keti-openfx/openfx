@@ -20,7 +20,7 @@ WORKDIR /home/app
 
 EXPOSE 10000
 
-COPY --from=builder /go/src/github.com/keti-openfx/openfx-gateway    .
+COPY --from=builder /go/src/github.com/keti-openfx/openfx-gateway .
 RUN chown -R app:app ./
 
 USER app

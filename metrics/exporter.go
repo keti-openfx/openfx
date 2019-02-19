@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/keti-openfx/openfx-gateway/pb"
-	"github.com/keti-openfx/openfx-gateway/service"
+	"github.com/keti-openfx/openfx-gateway/cmd"
 	"github.com/prometheus/client_golang/prometheus"
 	"k8s.io/client-go/kubernetes"
 )
@@ -57,7 +57,10 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 }
 
 // StartServiceWatcher starts a ticker and collects service replica counts to expose to prometheus
-func (e *Exporter) StartServiceWatcher(functionNamespace string, clientset *kubernetes.Clientset, metricsOptions MetricOptions, interval time.Duration) {
+func (e *Exporter) StartServiceWatcher( functionNamespace string, 
+					clientset *kubernetes.Clientset, 
+					metricsOptions MetricOptions, 
+					interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	quit := make(chan struct{})
 
@@ -66,7 +69,7 @@ func (e *Exporter) StartServiceWatcher(functionNamespace string, clientset *kube
 			select {
 			case <-ticker.C:
 
-				services, err := service.List(functionNamespace, clientset)
+				services, err := cmd.List(functionNamespace, clientset)
 				if err != nil {
 					log.Println(err)
 					continue

@@ -16,7 +16,7 @@ import (
 	"github.com/keti-openfx/openfx-gateway/metrics"
 	"github.com/keti-openfx/openfx-gateway/pb"
 	"github.com/keti-openfx/openfx-gateway/pkg/ui/data/swagger"
-	"github.com/keti-openfx/openfx-gateway/service"
+	"github.com/keti-openfx/openfx-gateway/cmd"
 	assetfs "github.com/philips/go-bindata-assetfs"
 	"google.golang.org/grpc"
 )
@@ -137,7 +137,7 @@ func makeHttpInvoke(functionNamespace string, fxWatcherPort int, timeout time.Du
 				w.Write([]byte(buf.Bytes()))
 				return
 			}
-			output, err := service.Invoke(serviceName, functionNamespace, fxWatcherPort, body, timeout)
+			output, err := cmd.Invoke(serviceName, functionNamespace, fxWatcherPort, body, timeout)
 			if err != nil {
 				log.Println(err.Error())
 				buf := bytes.NewBufferString("Can't reach service: " + serviceName + "\n")

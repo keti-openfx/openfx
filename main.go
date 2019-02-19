@@ -16,7 +16,7 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	log.Printf("kubernetest host: %s\n", conf.Host)
+	log.Printf("Kubernetes Host: %s\n", conf.Host)
 
 	/* 주어진 config을 위한 clienteset 반환 */
 	clientset, err := kubernetes.NewForConfig(conf)
@@ -29,8 +29,8 @@ func main() {
 
 	/* FxGateway 생성 */
 	s := NewFxGateway(c, clientset)
-	log.Printf("[fxgateway] service start\n")
 
 	/* FxGateway 실행 */
+	log.Printf("OpenFx Gateway Service Starting...\n")
 	s.Start()
 }
