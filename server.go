@@ -19,16 +19,14 @@ import (
 
 /* FxGateway는 gRPC service 구현체 */
 type FxGateway struct {
-	//환경 변수를 통해 설정한 config
-	conf       config.FxGatewayConfig
+	conf       config.FxGatewayConfig	/* 환경변수를 통한 설정 */
+	kubeClient *kubernetes.Clientset	/* kubernetes 클라이언트 */
+
 	httpServer *http.Server
 	grpcServer *grpc.Server
-	//kubernetes clients
-	kubeClient *kubernetes.Clientset
-	//prometheus metrics
-	metricsOptions metrics.MetricOptions
-	//prometheus client
-	metricsFetcher metrics.PrometheusQueryFetcher
+
+	metricsOptions metrics.MetricOptions	/* prometheus 메트릭 */
+	metricsFetcher metrics.PrometheusQueryFetcher /* prometheus 클라이언트 */
 }
 
 // FxGateway 생성
@@ -41,8 +39,8 @@ func NewFxGateway(c config.FxGatewayConfig, k *kubernetes.Clientset) *FxGateway 
 	}
 }
 
-// grpc handler
-// function 호출
+/* grpc handler
+ * function 호출*/
 func (f *FxGateway) Invoke(c context.Context, s *pb.InvokeServiceRequest) (*pb.Message, error) {
 	start := time.Now()
 	output, err := cmd.Invoke(s.Service, f.conf.FunctionNamespace, f.conf.FxWatcherPort, s.Input, f.conf.InvokeTimeout)

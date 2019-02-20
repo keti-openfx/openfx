@@ -23,7 +23,7 @@ import (
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
-// initialReplicasCount how many replicas to start of creating for a function
+/* initialReplicasCount how many replicas to start of creating for a function */
 const initialReplicasCount = 1
 
 type DeployHandlerConfig struct {
@@ -34,10 +34,10 @@ type DeployHandlerConfig struct {
 	SecretMountPath   string
 }
 
-// ValidateDeployRequest validates that the service name is valid for Kubernetes
+/* ValidateDeployRequest validates that the service name is valid for Kubernetes */
 func ValidateServiceName(service string) error {
-	// Regex for RFC-1123 validation:
-	// 	k8s.io/kubernetes/pkg/util/validation/validation.go
+	/* Regex for RFC-1123 validation:
+	 *	k8s.io/kubernetes/pkg/util/validation/validation.go */
 	var validDNS = regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`)
 	matched := validDNS.MatchString(service)
 	if matched {
