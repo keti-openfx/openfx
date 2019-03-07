@@ -1,0 +1,11 @@
+# The list of people who have contributed code(design, and so on...) to the openfx-gateway repository.
+#
+#
+
+Ji-Woo Kang <jiwoodidy@keti.re.kr>
+Siwon Kim <ksw19627@keti.re.kr>
+Youngyoon Choi <cyy03576@keti.re.kr>
+Donghyun Hwang <dhhwang89@keti.re.kr>
+Dongmin Kim <dmkim@keti.re.kr / csdmkim@gmail.com>
+Taegyeong Kim <taegyeong76@keti.re.kr>
+Jackie Son <jgson@keti.re.kr>
