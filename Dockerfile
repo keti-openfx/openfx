@@ -15,6 +15,8 @@ FROM alpine:3.7
 RUN addgroup -S app \
 	&& adduser -S -g app app \
 	&& apk --no-cache add \
+	&& mkdir /etc/docker \
+#	&& echo "{ "dns": ["172.17.0.1"] }" >> /etc/docker/daemon.json \
 	ca-certificates
 WORKDIR /home/app
 

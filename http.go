@@ -13,10 +13,10 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/keti-openfx/openfx-gateway/cmd"
 	"github.com/keti-openfx/openfx-gateway/metrics"
 	"github.com/keti-openfx/openfx-gateway/pb"
 	"github.com/keti-openfx/openfx-gateway/pkg/ui/data/swagger"
-	"github.com/keti-openfx/openfx-gateway/cmd"
 	assetfs "github.com/philips/go-bindata-assetfs"
 	"google.golang.org/grpc"
 )
@@ -146,8 +146,8 @@ func makeHttpInvoke(functionNamespace string, fxWatcherPort int, timeout time.Du
 				return
 			}
 
-			log.Printf("Success Invoke Service....\n")
 			w.WriteHeader(http.StatusOK)
+
 			w.Write([]byte(output))
 			w.Write([]byte("\n"))
 		}

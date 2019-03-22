@@ -18,8 +18,7 @@ func Invoke(service string, functionNamespace string, fxWatcherPort int, input [
 
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
-		log.Printf("did not connect: %s - %s\n", address, err.Error())
-		return "", status.Error(codes.Internal, err.Error())
+		return "", status.Error(codes.Internal, "did not connect: "+address+" - "+err.Error())
 	}
 	defer conn.Close()
 
@@ -30,11 +29,10 @@ func Invoke(service string, functionNamespace string, fxWatcherPort int, input [
 	start := time.Now()
 	r, err := c.Call(ctx, &pb.Request{Input: input, Info: &pb.Info{FunctionName: service, Trigger: &pb.Trigger{Name: "grpc", Time: time.Now().UTC().String()}}})
 	if err != nil {
-		log.Printf("could not invoke: %s - %s\n", service, err.Error())
 		if grpc.Code(err) == codes.DeadlineExceeded {
 			return "", status.Error(codes.DeadlineExceeded, fmt.Sprintf("Function timed out after %fs", time.Since(start).Seconds()))
 		}
-		return "", status.Error(codes.Internal, err.Error())
+		return "", status.Error(codes.Internal, "could not invoke: "+service+" - "+err.Error())
 	}
 
 	return r.Output, nil

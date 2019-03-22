@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/keti-openfx/openfx-gateway/cmd"
 	"github.com/keti-openfx/openfx-gateway/config"
 	"github.com/keti-openfx/openfx-gateway/metrics"
 	"github.com/keti-openfx/openfx-gateway/pb"
-	"github.com/keti-openfx/openfx-gateway/cmd"
 	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
@@ -19,13 +19,13 @@ import (
 
 /* FxGateway는 gRPC service 구현체 */
 type FxGateway struct {
-	conf       config.FxGatewayConfig	/* 환경변수를 통한 설정 */
-	kubeClient *kubernetes.Clientset	/* kubernetes 클라이언트 */
+	conf       config.FxGatewayConfig /* 환경변수를 통한 설정 */
+	kubeClient *kubernetes.Clientset  /* kubernetes 클라이언트 */
 
 	httpServer *http.Server
 	grpcServer *grpc.Server
 
-	metricsOptions metrics.MetricOptions	/* prometheus 메트릭 */
+	metricsOptions metrics.MetricOptions          /* prometheus 메트릭 */
 	metricsFetcher metrics.PrometheusQueryFetcher /* prometheus 클라이언트 */
 }
 
@@ -158,15 +158,15 @@ func (f *FxGateway) HealthCheck(c context.Context, s *pb.Empty) (*pb.Message, er
 
 // -----------------------------------------------------------------------------
 
-/* 
+/*
  * Start Openfx Gateway
  * 멀티플렉서 생성, 핸들러 등록, grpc/http 서버 시작
  */
 func (f *FxGateway) Start() error {
 
 	/* For Monitoring **********************************************************/
-	/*	
-	/* 매트릭 정보를 수집하는 Exporter를 생성 */
+	/*
+		/* 매트릭 정보를 수집하는 Exporter를 생성 */
 	exporter := metrics.NewExporter(f.metricsOptions)
 	// 5초마다 function들의 Replica(복제본 수) 정보  수집
 	servicePollInterval := time.Second * 5

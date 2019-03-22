@@ -14,9 +14,12 @@ push:
 	docker push ${REGISTRY}/fxgateway:$(TAG)
 
 deploy:
-	kubectl delete -f /root/Openfx/yaml/gateway-dep.yml -f /root/Openfx/yaml/gateway-svc.yml
-	kubectl apply -f /root/Openfx/yaml/gateway-dep.yml -f /root/Openfx/yaml/gateway-svc.yml
-	kubectl logs -n openfx $$(kubectl get pods --all-namespaces -l app=fxgateway -o name)
+#	kubectl delete -f /root/Openfx/yaml/gateway-dep.yml -f /root/Openfx/yaml/gateway-svc.yml
+#	kubectl apply -f /root/Openfx/yaml/gateway-dep.yml -f /root/Openfx/yaml/gateway-svc.yml
+	kubectl delete -f /root/workspace/openfx/yaml/gateway-dep.yml -f /root/workspace/openfx/yaml/gateway-svc.yml
+	kubectl apply -f /root/workspace/openfx/yaml/gateway-dep.yml -f /root/workspace/openfx/yaml/gateway-svc.yml
+
+	#kubectl logs -n openfx $$(kubectl get pods --all-namespaces -l app=fxgateway -o name)
 git:
 	git add .
 	git commit -m "$m"
