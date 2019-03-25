@@ -25,7 +25,7 @@ func main() {
 	}
 
 	/* FxGateway config 생성 */
-	c := config.NewFxGatewayConfig()
+	c := config.NewFxGatewayConfig(Version)
 
 	/* FxGateway 생성 */
 	s := NewFxGateway(c, clientset)
