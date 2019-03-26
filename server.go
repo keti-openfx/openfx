@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"time"
+	"runtime"
 
 	"github.com/keti-openfx/openfx-gateway/cmd"
 	"github.com/keti-openfx/openfx-gateway/config"
@@ -15,6 +16,7 @@ import (
 	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
+	"golang.org/x/net/trace"
 )
 
 /* FxGateway는 gRPC service 구현체 */
@@ -27,16 +29,25 @@ type FxGateway struct {
 
 	metricsOptions metrics.MetricOptions          /* prometheus 메트릭 */
 	metricsFetcher metrics.PrometheusQueryFetcher /* prometheus 클라이언트 */
+
+	events	trace.EventLog
 }
 
 // FxGateway 생성
 func NewFxGateway(c config.FxGatewayConfig, k *kubernetes.Clientset) *FxGateway {
-	return &FxGateway{
+	gw := &FxGateway{
 		conf:           c,
 		kubeClient:     k,
 		metricsOptions: metrics.BuildMetricsOptions(),
 		metricsFetcher: metrics.NewPrometheusQuery(c.PrometheusHost, c.PrometheusPort, &http.Client{}),
 	}
+
+	if EnableTracing {
+		_, file, line, _ := runtime.Caller(1)
+		gw.events = trace.NewEventLog("FxGateway", fmt.Sprintf("%s:%d", file, line))
+	}
+
+	return gw
 }
 
 /* grpc handler
