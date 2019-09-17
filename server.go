@@ -177,7 +177,7 @@ func (f *FxGateway) Start() error {
 
 	/* For Monitoring **********************************************************/
 	/*
-		/* 매트릭 정보를 수집하는 Exporter를 생성 */
+	/* 매트릭 정보를 수집하는 Exporter를 생성 */
 	exporter := metrics.NewExporter(f.metricsOptions)
 	// 5초마다 function들의 Replica(복제본 수) 정보  수집
 	servicePollInterval := time.Second * 5

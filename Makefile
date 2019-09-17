@@ -27,12 +27,17 @@ deploy:
 	@echo 
 	@kubectl logs -n openfx $$(kubectl get pods --all-namespaces -l app=fxgateway -o name)
 
-git:
+git: clean
+ifneq ($m,)
+	@echo "#### Git Push ####"
 	git add .
 	git commit -m "$m"
 	git push origin master
+else
+	@echo "Usage: make git m=message"
+endif
 
 clean:
-	rm -fr ./openfx-gateway
+	@rm -fr ./openfx-gateway
 
 .PHONY: all build push deploy clean
