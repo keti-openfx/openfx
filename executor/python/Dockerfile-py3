@@ -1,0 +1,18 @@
+# Argrumnets for FROM
+ARG PYTHON_VERSION=3.4
+
+# Build dcf-watcher
+FROM python:${PYTHON_VERSION}-alpine
+
+RUN apk --no-cache add build-base && \
+    apk del curl --no-cache
+
+ENV GRPC_PYTHON_VERSION 1.4.0
+RUN pip3 install grpcio==${GRPC_PYTHON_VERSION} grpcio-tools==${GRPC_PYTHON_VERSION}
+
+RUN mkdir -p /openfx/watcher
+WORKDIR /openfx/watcher
+
+COPY . .
+
+RUN pip3 install -r requirements.txt
