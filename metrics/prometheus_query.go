@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/keti-openfx/openfx-gateway/pb"
+	"github.com/keti-openfx/openfx/pb"
 )
 
 type VectorQueryResponse struct {

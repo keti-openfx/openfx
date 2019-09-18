@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/keti-openfx/openfx-gateway/pb"
+	"github.com/keti-openfx/openfx/pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

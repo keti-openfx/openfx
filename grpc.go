@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/keti-openfx/openfx-gateway/pb"
+	"github.com/keti-openfx/openfx/pb"
 	"google.golang.org/grpc"
 )
 

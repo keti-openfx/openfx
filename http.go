@@ -13,10 +13,10 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/keti-openfx/openfx-gateway/cmd"
-	"github.com/keti-openfx/openfx-gateway/metrics"
-	"github.com/keti-openfx/openfx-gateway/pb"
-	"github.com/keti-openfx/openfx-gateway/pkg/ui/data/swagger"
+	"github.com/keti-openfx/openfx/cmd"
+	"github.com/keti-openfx/openfx/metrics"
+	"github.com/keti-openfx/openfx/pb"
+	"github.com/keti-openfx/openfx/pkg/ui/data/swagger"
 	assetfs "github.com/philips/go-bindata-assetfs"
 	"google.golang.org/grpc"
 )

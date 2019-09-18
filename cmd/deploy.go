@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/keti-openfx/openfx-gateway/pb"
+	"github.com/keti-openfx/openfx/pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	apiv1 "k8s.io/api/core/v1"

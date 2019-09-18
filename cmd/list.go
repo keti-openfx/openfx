@@ -3,7 +3,7 @@ package cmd
 import (
 	"log"
 
-	"github.com/keti-openfx/openfx-gateway/pb"
+	"github.com/keti-openfx/openfx/pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	v1beta1 "k8s.io/api/extensions/v1beta1"

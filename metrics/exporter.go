@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/keti-openfx/openfx-gateway/pb"
-	"github.com/keti-openfx/openfx-gateway/cmd"
+	"github.com/keti-openfx/openfx/pb"
+	"github.com/keti-openfx/openfx/cmd"
 	"github.com/prometheus/client_golang/prometheus"
 	"k8s.io/client-go/kubernetes"
 )

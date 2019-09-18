@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/keti-openfx/openfx-gateway/config"
+	"github.com/keti-openfx/openfx/config"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )

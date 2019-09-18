@@ -3,7 +3,7 @@ package cmd
 import (
 	"log"
 
-	"github.com/keti-openfx/openfx-gateway/config"
+	"github.com/keti-openfx/openfx/config"
 	yaml "gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes"
 )

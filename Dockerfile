@@ -1,8 +1,8 @@
 FROM golang:1.10.1 as builder
 
-RUN mkdir -p /go/src/github.com/keti-openfx/openfx-gateway
+RUN mkdir -p /go/src/github.com/keti-openfx/openfx
 
-WORKDIR /go/src/github.com/keti-openfx/openfx-gateway
+WORKDIR /go/src/github.com/keti-openfx/openfx
 
 COPY . .
 
@@ -22,7 +22,7 @@ WORKDIR /home/app
 
 EXPOSE 10000
 
-COPY --from=builder /go/src/github.com/keti-openfx/openfx-gateway .
+COPY --from=builder /go/src/github.com/keti-openfx/openfx .
 RUN chown -R app:app ./
 
 USER app
