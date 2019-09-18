@@ -7,6 +7,7 @@ clean:
 	rm -f ./*pb2.py ./*pb2_grpc.py
 
 proto:
+	pip install -r requirements.txt
 	python2 -m grpc_tools.protoc \
 		-I . \
 		-I${GOPATH}/src/github.com/keti-openfx/openfx/pb \

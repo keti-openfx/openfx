@@ -11,7 +11,9 @@ proto:
                 ${GOPATH}/src/github.com/keti-openfx/openfx/pb/fxwatcher.proto
 build:
 	go build -o fxwatcher .
+
 docker-build:
 	docker build -t $(registry)/fxwatcher:$(version)-go --build-arg GO_VERSION=$(go_version) .
+
 docker-push:
 	docker push $(registry)/fxwatcher:$(version)-go
