@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: prometheus
-        image: prom/prometheus:v2.3.1
+        image: prom/prometheus:v2.8.0
         command:
           - "prometheus"
           - "--config.file=/etc/prometheus/prometheus.yml"
@@ -52,7 +52,7 @@ spec:
   ports:
     - port: 9090
       protocol: TCP
-      targetPort: 9090
+      targetPort: 9095
       nodePort: 31119
   selector:
     app: prometheus

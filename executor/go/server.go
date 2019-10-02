@@ -19,7 +19,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
-	"github.com/keti-openfx/openfx-watcher/go/pb"
+	"github.com/keti-openfx/openfx/executor/go/pb"
 )
 
 type FxWatcher struct {
@@ -56,7 +56,7 @@ func loadUserFunction(file, function string) func(pb.Request) string {
 func main() {
 	port := getEnvInt("PORT", 50051)
 	handlerName := getEnvString("HANDLER_NAME", "Handler")
-	handlerFilePath := getEnvString("HANDLER_FILE", "/go/src/openfx/handler/handler")
+	handlerFilePath := getEnvString("HANDLER_FILE", "/go/src/github.com/keti-openfx/openfx/executor/go")
 
 	fw := NewFxWatcher()
 	fw.userFunction = loadUserFunction(handlerFilePath, handlerName)
