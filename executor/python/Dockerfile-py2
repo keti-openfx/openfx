@@ -4,9 +4,7 @@ ARG PYTHON_VERSION=2.7
 # Build dcf-watcher
 FROM python:${PYTHON_VERSION}-alpine
 
-RUN apk add --no-cache --virtual .build-deps g++ python3-dev libffi-dev openssl-dev && \
-    apk add --no-cache --update python3 && \
-    apk add --no-cache --update alpine-sdk && \
+RUN apk --no-cache add build-base && \
     apk del curl --no-cache
 
 ENV GRPC_PYTHON_VERSION 1.23.0
@@ -17,5 +15,4 @@ WORKDIR /openfx/watcher
 
 COPY . .
 
-RUN pip install --upgrade pip setuptools
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt

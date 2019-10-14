@@ -21,7 +21,7 @@ python2:
 	docker build -t $(registry)/fxwatcher:$(version)-python2 --build-arg PYTHON_VERSION=$(python_version) -f Dockerfile-py2 .
 	docker push $(registry)/fxwatcher:$(version)-python2
 
-python3: python_version=3.4
+python3: python_version=3.6
 python3:
 	docker build -t $(registry)/fxwatcher:$(version)-python3 --build-arg PYTHON_VERSION=$(python_version) -f Dockerfile-py3 .
 	docker push $(registry)/fxwatcher:$(version)-python3

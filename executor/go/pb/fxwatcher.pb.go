@@ -8,6 +8,8 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -358,6 +360,14 @@ func (c *fxWatcherClient) Call(ctx context.Context, in *Request, opts ...grpc.Ca
 // FxWatcherServer is the server API for FxWatcher service.
 type FxWatcherServer interface {
 	Call(context.Context, *Request) (*Reply, error)
+}
+
+// UnimplementedFxWatcherServer can be embedded to have forward compatible implementations.
+type UnimplementedFxWatcherServer struct {
+}
+
+func (*UnimplementedFxWatcherServer) Call(ctx context.Context, req *Request) (*Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Call not implemented")
 }
 
 func RegisterFxWatcherServer(s *grpc.Server, srv FxWatcherServer) {
