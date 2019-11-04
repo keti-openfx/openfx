@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: prometheus
-        image: prom/prometheus:v2.8.0
+        image: prom/prometheus:latest
         command:
           - "prometheus"
           - "--config.file=/etc/prometheus/prometheus.yml"
@@ -27,12 +27,12 @@ spec:
             memory: 512Mi
         volumeMounts:
         - mountPath: /etc/prometheus/prometheus.yml
-          name: prometheus-config
+          name: prometheus-configuration
           subPath: prometheus.yml
       volumes:
-        - name: prometheus-config
+        - name: prometheus-configuration
           configMap:
-            name: prometheus-config
+            name: prometheus-configuration
             items:
               - key: prometheus.yml
                 path: prometheus.yml
@@ -65,7 +65,7 @@ apiVersion: v1
 metadata:
   labels:
     app: prometheus
-  name: prometheus-config
+  name: prometheus-configuration
   namespace: openfx
 data:
   prometheus.yml: |
@@ -84,7 +84,7 @@ data:
       - job_name: "node_exporter"
         scrape_interval: 5s
         static_configs:
-          -targets: ['10.0.0.180:9100']
+          - targets: ['10.0.0.180:9100']
       - job_name: "gateway"
         scrape_interval: 5s
         dns_sd_configs:
