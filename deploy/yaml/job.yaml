@@ -38,7 +38,7 @@ spec:
               if [ -e "$file" ] ; then
                 echo "importing $file" &&
                 curl --silent --fail --show-error \
-                  --request POST http://${GF_ADMIN_USER}:${GF_ADMIN_PASSWORD}@10.0.0.122:30949/api/datasources \
+                  --request POST http://${GF_ADMIN_USER}:${GF_ADMIN_PASSWORD}@10.0.0.180:30949/api/datasources \
                   --header "Content-Type: application/json" \
                   --data-binary "@$file" ;
                 echo "" ;
@@ -52,7 +52,7 @@ spec:
                   echo ',"overwrite":true,"inputs":[{"name":"DS_PROMETHEUS","type":"datasource","pluginId":"prometheus","value":"prometheus"}]}' ) \
                 | jq -c '.' \
                 | curl --silent --fail --show-error \
-                  --request POST http://${GF_ADMIN_USER}:${GF_ADMIN_PASSWORD}@10.0.0.122:30949/api/dashboards/db \
+                  --request POST http://${GF_ADMIN_USER}:${GF_ADMIN_PASSWORD}@10.0.0.180:30949/api/dashboards/db \
                   --header "Content-Type: application/json" \
                   --data-binary "@-" ;
                 echo "" ;
