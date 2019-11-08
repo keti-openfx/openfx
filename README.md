@@ -15,7 +15,7 @@ OpenFx는 API 단위 응용 개발 및 자원 할당 및 사용량 측정 기능
 
 ## Introduction of OpenFx&reg;
 
-![Architecture of the OpenFx](/Openfx_Architecture.png)
+![Architecture of the OpenFx](/OpenFx_Architecture.png)
 
 ### Technical overview
 
