@@ -1,4 +1,4 @@
-var PROTO_PATH = __dirname + '/pb/fxwatcher.proto';
+var PROTO_PATH = __dirname + '/proto/fxwatcher.proto';
 
 var grpc = require('grpc');
 var protoLoader = require('@grpc/proto-loader');
