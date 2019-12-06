@@ -10,8 +10,8 @@ RUN apk add --no-cache build-base && \
 ENV GRPC_PYTHON_VERSION 1.23.0
 RUN pip3 install grpcio==${GRPC_PYTHON_VERSION} grpcio-tools==${GRPC_PYTHON_VERSION}
 
-RUN mkdir -p /openfx/watcher
-WORKDIR /openfx/watcher
+RUN mkdir -p /openfx/executor
+WORKDIR /openfx/executor
 
 COPY . .
 
