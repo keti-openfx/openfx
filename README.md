@@ -38,6 +38,8 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
 - Golang
 - Python 2.7
 - Python 3.6
+- Node JS
+- Ruby
 
 #### CLI 
 
@@ -74,6 +76,31 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
     ```python
     def Handler(req):
         return req.input
+    ```
+  - Node Js
+  
+    handler.js
+    
+    ```js
+    function Handler(argStr) {
+        return argStr;
+    }
+    
+    module.exports = Handler;
+    ```
+  
+  - Ruby
+  
+    handler.rb
+    
+    ```ruby
+    #!/usr/bin/env ruby
+    
+    module FxWatcher
+      def FxWatcher.Handler(argStr)
+        return argStr
+      end
+    end
     ```
 
 ## Get started with OpenFx
