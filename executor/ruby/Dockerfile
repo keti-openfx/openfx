@@ -7,8 +7,8 @@ RUN apk add --no-cache build-base && \
 
 RUN apk --no-cache add graphicsmagick libc6-compat
 
-RUN mkdir -p /openfx/watcher
-WORKDIR /openfx/watcher
+RUN mkdir -p /openfx/executor
+WORKDIR /openfx/executor
 
 RUN gem update --system
 RUN bundle init
