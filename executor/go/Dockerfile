@@ -13,4 +13,3 @@ RUN go mod vendor -v
 RUN gofmt -l -d $(find . -type f -name '*.go' -not -path "./vendor/*")
 RUN go build -o fxwatcher .
 
-RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh

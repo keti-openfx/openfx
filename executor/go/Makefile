@@ -13,7 +13,7 @@ build:
 	go build -o fxwatcher .
 
 docker-build:
-	docker build -t $(registry)/fxwatcher:$(version)-go --build-arg GO_VERSION=$(go_version) .
+	docker build --network=host -t $(registry)/fxwatcher:$(version)-go --build-arg GO_VERSION=$(go_version) .
 
 docker-push:
 	docker push $(registry)/fxwatcher:$(version)-go
