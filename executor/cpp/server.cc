@@ -14,11 +14,7 @@ using grpc::Status;
 using pb::FxWatcher;
 using pb::Request;
 using pb::Reply;
-/*
-std::string loadUserFunction() {
 
-}
-*/
 class FxWatcherServiceImpl final : public FxWatcher::Service {
   Status Call(ServerContext* context, const Request* request, 
               Reply* reply) override {
