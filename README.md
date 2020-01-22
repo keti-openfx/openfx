@@ -40,6 +40,7 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
 - Python 3.6
 - Node JS
 - Ruby
+- C++
 
 #### CLI 
 
@@ -77,7 +78,7 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
     def Handler(req):
         return req.input
     ```
-  - Node Js
+  - Node Js example
   
     handler.js
     
@@ -89,7 +90,7 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
     module.exports = Handler;
     ```
   
-  - Ruby
+  - Ruby example
   
     handler.rb
     
@@ -101,6 +102,20 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
         return argStr
       end
     end
+    ```
+
+  - C++ example
+  
+    handler.cc
+    
+    ```c++
+    #include <iostream>
+    
+    using namespace std;
+    
+    string Handler(const string req) {
+      return req;
+    }
     ```
 
 ## Get started with OpenFx
