@@ -9,7 +9,7 @@ NodeJS:
 Ruby:
 	cd ruby; $(MAKE)
 CPP:
-	cd cpp; $(MAKE)
+	cd cpp; $(MAKE) docker-build; $(MAKE) docker-push
 git:
 	git add .
 	git commit -m "$m"
