@@ -1,4 +1,4 @@
-all: Go Python NodeJS Ruby
+all: Go Python NodeJS Ruby CPP
   
 Go:
 	cd go; $(MAKE)
@@ -8,6 +8,8 @@ NodeJS:
 	cd nodejs; $(MAKE)
 Ruby:
 	cd ruby; $(MAKE)
+CPP:
+	cd cpp; $(MAKE)
 git:
 	git add .
 	git commit -m "$m"
