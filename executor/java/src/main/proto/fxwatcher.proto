@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package pb;
+
+option java_multiple_files = true;
+option java_package = "io.grpc.fxwatcher";
+option java_outer_classname = "FxWatcherProto";
+option objc_class_prefix = "FW";
+
+service FxWatcher {
+  rpc Call(Request) returns(Reply) {}
+}
+
+message Request {
+  bytes input = 1;
+  Info info = 2;
+}
+
+message Reply {
+  string Output = 1;
+}
+
+message Info {
+  string FunctionName = 1;
+  string Timeout = 2;
+  string Runtime = 3;
+  Resources Limits = 4;
+  Trigger Trigger = 5;
+}
+
+message Trigger {
+  string Name = 1;
+  string Topic = 2;
+  string Time = 3;
+}
+
+message Resources {
+  string Memory = 1;
+  string CPU = 2;
+  string GPU = 3;
+}
