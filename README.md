@@ -41,6 +41,7 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
 - Node JS
 - Ruby
 - C++
+- Java
 
 #### CLI 
 
@@ -118,6 +119,23 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
     }
     ```
 
+  - Java example
+  
+    Handler.java
+    
+    ```java
+    package io.grpc.fxwatcher;
+
+    import com.google.protobuf.ByteString;
+
+    public class Handler {
+
+      public static String reply(ByteString input) {
+        return input.toStringUtf8() + "test";
+      }
+
+    }
+    ```
 ## Get started with OpenFx
 
 1. [Installing minikube](./documents/1.Installing_Minikube.md)
