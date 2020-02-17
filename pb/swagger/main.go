@@ -17,7 +17,7 @@ func main() {
 		if strings.HasSuffix(f.Name(), ".json") {
 			name := strings.TrimPrefix(f.Name(), "fxgateway.")
 			name = strings.TrimSuffix(name, ".json")
-			out.Write([]byte("	" + strings.Title(name) + " = `"))
+			out.Write([]byte("  " + strings.Title(name) + " = `"))
 			f, _ := os.Open(f.Name())
 			io.Copy(out, f)
 			out.Write([]byte("`\n"))

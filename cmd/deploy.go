@@ -21,10 +21,15 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
+
+	v2beta1 "k8s.io/api/autoscaling/v2beta1"
 )
 
 /* initialReplicasCount how many replicas to start of creating for a function */
 const initialReplicasCount = 1
+
+/* initialCpuUtilization limit of CPU Utilization per pod */
+const initialCpuUtilization = 80
 
 type DeployHandlerConfig struct {
 	FunctionNamespace string
@@ -86,6 +91,21 @@ func Deploy(req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, conf
 	}
 
 	log.Println("Created service - " + req.Service)
+
+	hpaSpec, err := makeAutoscaleSpec(req)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, err.Error())
+	}
+	deployHPA := clientset.AutoscalingV2beta1().HorizontalPodAutoscalers(config.FunctionNamespace)
+	_, err = deployHPA.Create(hpaSpec)
+	if err != nil {
+		if k8sErrors.IsAlreadyExists(err) {
+			return status.Error(codes.AlreadyExists, err.Error())
+		}
+		return status.Error(codes.Internal, err.Error())
+	}
+
+	log.Println("Created HPA deployment - " + req.Service)
 
 	return nil
 }
@@ -250,6 +270,49 @@ func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int) *v1.Servi
 		},
 	}
 	return serviceSpec
+}
+
+func makeAutoscaleSpec(req *pb.CreateFunctionRequest) (*v2beta1.HorizontalPodAutoscaler, error) {
+	hpaSpec := &v2beta1.HorizontalPodAutoscaler{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "HorizontalPodAutoscaler",
+			APIVersion: "autoscaling/v2beta1",
+		},
+
+		ObjectMeta: metav1.ObjectMeta{
+			Name: req.Service,
+		},
+
+		Spec: v2beta1.HorizontalPodAutoscalerSpec{
+			ScaleTargetRef: v2beta1.CrossVersionObjectReference{
+				Kind:       "Deployment",
+				Name:       req.Service,
+				APIVersion: "extensions/v1beta1",
+			},
+			//MinReplicas: int32p(initialReplicasCount),
+			MinReplicas: int32p(req.MinReplicas),
+			//MaxReplicas: int32(5),
+			MaxReplicas: req.MaxReplicas,
+			Metrics: []v2beta1.MetricSpec{
+				{
+					Type: v2beta1.ResourceMetricSourceType,
+					Resource: &v2beta1.ResourceMetricSource{
+						Name:                     apiv1.ResourceCPU,
+						TargetAverageUtilization: int32p(initialCpuUtilization),
+					},
+				},
+
+				{
+					Type: v2beta1.ResourceMetricSourceType,
+					Resource: &v2beta1.ResourceMetricSource{
+						Name:               apiv1.ResourceMemory,
+						TargetAverageValue: resource.NewQuantity(200*1024*1024, resource.BinarySI),
+					},
+				},
+			},
+		},
+	}
+	return hpaSpec, nil
 }
 
 func buildAnnotations(request *pb.CreateFunctionRequest) map[string]string {

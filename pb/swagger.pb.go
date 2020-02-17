@@ -1,7 +1,7 @@
 package pb 
 
 const (
-	Swagger = `{
+  Swagger = `{
   "swagger": "2.0",
   "info": {
     "title": "fxgateway.proto",
@@ -259,6 +259,14 @@ const (
         },
         "Requests": {
           "$ref": "#/definitions/pbFunctionResources"
+        },
+        "MinReplicas": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "MaxReplicas": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },

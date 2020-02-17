@@ -6,17 +6,17 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"time"
 	"runtime"
+	"time"
 
 	"github.com/keti-openfx/openfx/cmd"
 	"github.com/keti-openfx/openfx/config"
 	"github.com/keti-openfx/openfx/metrics"
 	"github.com/keti-openfx/openfx/pb"
 	"github.com/soheilhy/cmux"
+	"golang.org/x/net/trace"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
-	"golang.org/x/net/trace"
 )
 
 /* FxGateway는 gRPC service 구현체 */
@@ -30,7 +30,7 @@ type FxGateway struct {
 	metricsOptions metrics.MetricOptions          /* prometheus 메트릭 */
 	metricsFetcher metrics.PrometheusQueryFetcher /* prometheus 클라이언트 */
 
-	events	trace.EventLog
+	events trace.EventLog
 }
 
 // FxGateway 생성
@@ -177,7 +177,7 @@ func (f *FxGateway) Start() error {
 
 	/* For Monitoring **********************************************************/
 	/*
-	/* 매트릭 정보를 수집하는 Exporter를 생성 */
+		/* 매트릭 정보를 수집하는 Exporter를 생성 */
 	exporter := metrics.NewExporter(f.metricsOptions)
 	// 5초마다 function들의 Replica(복제본 수) 정보  수집
 	servicePollInterval := time.Second * 5

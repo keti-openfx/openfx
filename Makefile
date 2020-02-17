@@ -12,7 +12,7 @@ build:
 	@go build .
 
 push:
-	docker build -t ${REGISTRY}/fxgateway:$(TAG) .
+	docker build --network=host -t ${REGISTRY}/fxgateway:$(TAG) .
 	docker push ${REGISTRY}/fxgateway:$(TAG)
 
 deploy:

@@ -256,6 +256,14 @@
         },
         "Requests": {
           "$ref": "#/definitions/pbFunctionResources"
+        },
+        "MinReplicas": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "MaxReplicas": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },

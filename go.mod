@@ -1,6 +1,6 @@
 module github.com/keti-openfx/openfx
 
-go 1.12
+go 1.13
 
 require (
 	github.com/PuerkitoBio/purell v1.1.0 // indirect
@@ -22,7 +22,7 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20171119193500-2bcd89a1743f // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.4.1
 	github.com/json-iterator/go v0.0.0-20180128090011-28452fcdec4e // indirect
-	github.com/juju/ratelimit v1.0.1 // indirect
+	github.com/juju/ratelimit v0.0.0-20171026090426-59fac5042749 // indirect
 	github.com/mailru/easyjson v0.0.0-20171120080333-32fa128f234d // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/petar/GoLLRB v0.0.0-20130427215148-53be0d36a84c // indirect
@@ -39,7 +39,7 @@ require (
 	google.golang.org/genproto v0.0.0-20180709204101-e92b11657268
 	google.golang.org/grpc v1.13.0
 	gopkg.in/inf.v0 v0.9.0 // indirect
-	gopkg.in/yaml.v2 v2.0.0
+	gopkg.in/yaml.v2 v2.0.0-20180109114331-d670f9405373
 	k8s.io/api v0.0.0-20180126130815-dc0dd48d5a5c
 	k8s.io/apimachinery v0.0.0-20180126010702-4972c8e335e3
 	k8s.io/client-go v6.0.0+incompatible
