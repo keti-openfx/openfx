@@ -10,6 +10,8 @@ import (
 	"google.golang.org/grpc/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	//"encoding/json"
 )
 
 func Update(functionNamespace string, req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, secretMountPath string) error {
@@ -25,6 +27,10 @@ func Update(functionNamespace string, req *pb.CreateFunctionRequest, clientset *
 	}
 
 	if err := updateService(functionNamespace, clientset, req, annotations); err != nil {
+		return err
+	}
+
+	if err := updateHPA(functionNamespace, clientset, req, annotations); err != nil {
 		return err
 	}
 
@@ -147,3 +153,40 @@ func updateService(
 
 	return nil
 }
+
+func updateHPA(
+	functionNamespace string,
+	clientset *kubernetes.Clientset,
+	request *pb.CreateFunctionRequest,
+	annotations map[string]string) (err error) {
+
+	getOpts := metav1.GetOptions{}
+	hpa, findHPAErr := clientset.AutoscalingV2beta1().
+		HorizontalPodAutoscalers(functionNamespace).
+		Get(request.Service, getOpts)
+
+	if findHPAErr != nil {
+		log.Println(findHPAErr)
+		return status.Error(codes.NotFound, findHPAErr.Error())
+	}
+
+	hpa.Annotations = annotations
+	hpa.Spec.MinReplicas = int32p(request.MinReplicas)
+	hpa.Spec.MaxReplicas = request.MaxReplicas
+/*
+	hpaJson, err := json.Marshal(hpa)
+	if err != nil {
+		log.Println(err)
+	}
+*/
+	if _, updateErr := clientset.AutoscalingV2beta1().
+		HorizontalPodAutoscalers(functionNamespace).
+		Update(hpa); updateErr != nil {
+
+		log.Println(updateErr)
+		return status.Error(codes.Internal, updateErr.Error())
+	}
+
+	return nil
+}
+
