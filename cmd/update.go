@@ -10,8 +10,6 @@ import (
 	"google.golang.org/grpc/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-
-	//"encoding/json"
 )
 
 func Update(functionNamespace string, req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, secretMountPath string) error {
@@ -173,12 +171,7 @@ func updateHPA(
 	hpa.Annotations = annotations
 	hpa.Spec.MinReplicas = int32p(request.MinReplicas)
 	hpa.Spec.MaxReplicas = request.MaxReplicas
-/*
-	hpaJson, err := json.Marshal(hpa)
-	if err != nil {
-		log.Println(err)
-	}
-*/
+
 	if _, updateErr := clientset.AutoscalingV2beta1().
 		HorizontalPodAutoscalers(functionNamespace).
 		Update(hpa); updateErr != nil {
