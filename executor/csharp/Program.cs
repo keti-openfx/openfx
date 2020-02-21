@@ -13,39 +13,62 @@
 // limitations under the License.
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using System.Text;
 using Grpc.Core;
+using Google.Protobuf;
 using Pb;
 
 
-namespace FxServer
+namespace FxWatcherServer
 {
-    class FxImpl : FxWatcher.FxWatcherBase
+    class FxWatcherImpl : FxWatcher.FxWatcherBase
     {
         // Server side handler of the SayHello RPC
         public override Task<Reply> Call(Request request, ServerCallContext context)
         {
 	    // Handler Class Call
-	    Fx.Function fx = new Fx.Function();
-            object res = fx.Handler(request.Input); 
-            return Task.FromResult(new Reply { Output = res.ToString() });
+	        Fx.Function fx = new Fx.Function();
+		    byte[] res = fx.Handler(request.Input.ToByteArray());
+			string result = Encoding.Default.GetString(res);
+            return Task.FromResult(new Reply { Output = result });
         }
     }
-    
+   
     class Program
     {
         const int Port = 50051;
+        
+        private static async Task Process()
+        {
 
+            while (true)
+            {
+                await Task.Delay(100);
+            }
+
+        }
+    
         public static void Main(string[] args)
         {
-            Server server = new Server
+            
+			
+			File.Create("/tmp/.lock");
+			Console.WriteLine("Writing lock-file to: /tmp/.lock");
+
+			Server server = new Server
             {
-                Services = { FxWatcher.BindService(new FxImpl()) },
-                Ports = { new ServerPort("localhost", Port, ServerCredentials.Insecure) }
+                Services = { FxWatcher.BindService(new FxWatcherImpl()) },
+                Ports = { new ServerPort("0.0.0.0", Port, ServerCredentials.Insecure) }
             };
             server.Start();
-            //server.ShutdownAsync().Wait();
+
+            Console.WriteLine("[fxwatcher] start service.");
+	    
+            var processTask = Process();
+            processTask.Wait();   
+            server.ShutdownAsync().Wait();
         }
     }
 }
