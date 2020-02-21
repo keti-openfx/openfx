@@ -42,6 +42,7 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
 - Ruby
 - C++
 - Java
+- C#
 
 #### CLI 
 
@@ -79,10 +80,11 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
     def Handler(req):
         return req.input
     ```
+
   - Node Js example
-  
+
     handler.js
-    
+
     ```js
     function Handler(argStr) {
         return argStr;
@@ -90,11 +92,11 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
     
     module.exports = Handler;
     ```
-  
+
   - Ruby example
-  
+
     handler.rb
-    
+
     ```ruby
     #!/usr/bin/env ruby
     
@@ -106,9 +108,9 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
     ```
 
   - C++ example
-  
+
     handler.cc
-    
+
     ```c++
     #include <iostream>
     
@@ -120,20 +122,37 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
     ```
 
   - Java example
-  
+
     Handler.java
-    
+
     ```java
     package io.grpc.fxwatcher;
-
+    
     import com.google.protobuf.ByteString;
-
+    
     public class Handler {
-
+    
       public static String reply(ByteString input) {
         return input.toStringUtf8() + "test";
       }
+    
+    }
+    ```
 
+  - C# example
+
+    handler.cs
+
+    ```c#
+    namespace Fx
+    {
+        class Function
+        {
+            public byte[] Handler(byte[] Input)
+            {
+                return Input; 
+            }
+        }
     }
     ```
 ## Get started with OpenFx
@@ -142,10 +161,6 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
 2. [Installing minikube](./documents/2.Installing_Minikube.md)
 3. [Compiling OpenFx](./documents/3.Compile_OpenFx.md)
 4. [Deploy OpenFx](./documents/4.Deploy_OpenFx.md)
-
-## Status
-
-OpenFX는 아직 초기 개발 중으로 향후 오픈소스화 할 예정임.
 
 ## Governance
 
