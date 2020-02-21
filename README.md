@@ -138,12 +138,9 @@ OpenFx 프레임워크는 함수의 런타임으로 아래와 같은 언어를 �
     ```
 ## Get started with OpenFx
 
-1. [Installing minikube](./documents/1.Installing_Minikube.md)
-
-2. [Building private docker registry](./documents/2.Building_Private_Docker_Registry.md)
-
+1. [Building private docker registry](./documents/1.Building_Private_Docker_Registry.md)
+2. [Installing minikube](./documents/2.Installing_Minikube.md)
 3. [Compiling OpenFx](./documents/3.Compile_OpenFx.md)
-
 4. [Deploy OpenFx](./documents/4.Deploy_OpenFx.md)
 
 ## Status
