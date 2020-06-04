@@ -1,6 +1,6 @@
 # Pull Request
 
-DigitalCompanion-KETI/dcf-gateway 레파지토리에 기여해주셔서 감사드립니다.
+keti-openfx/openfx 레파지토리에 기여해주셔서 감사드립니다.
 
 해당 PR을 제출하기 전에 아래 사항이 완료되었는지 확인 부탁드립니다:
 
