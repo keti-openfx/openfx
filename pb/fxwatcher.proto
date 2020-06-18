@@ -4,16 +4,11 @@ package pb;
 
 service FxWatcher {
   rpc Call(Request) returns(Reply) {}
-  rpc Calls(stream Request) returns (stream Response) {}
 }
 
 message Request {
   bytes input = 1;
   Info info = 2;
-}
-
-message Response{
-  bytes Output = 1;
 }
 
 message Reply {
