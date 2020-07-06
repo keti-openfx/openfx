@@ -46,7 +46,7 @@ func NewFxGatewayConfig(version string) FxGatewayConfig {
 		ImagePullPolicy:   envs.GetString("IMAGE_PULL_POLICY", "Always"),
 		EnableHttpProbe:   envs.GetBool("FUNCTION_HTTP_PROBE", false),
 		FxWatcherPort:     envs.GetInt("FXWATCHER_PORT", 50051),
-		FxMeshPort:		   envs.GetInt("FXMESH_PORT", 50052)
+		FxMeshPort:		   envs.GetInt("FXMESH_PORT", 50052),
 		BasicAuth:         envs.GetBool("BASIC_AUTH", false),
 		SecretMountPath:   envs.GetString("SECRET_MOUNT_PATH", "/etc/openfx"),
 

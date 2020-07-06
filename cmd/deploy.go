@@ -221,7 +221,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 							Image: req.Image,
 							Ports: []apiv1.ContainerPort{
 								{ContainerPort: int32(config.FxWatcherPort), Protocol: v1.ProtocolTCP},
-								{ContainerPort: int32(config.FxMeshPort), Protocol: v1.ProtocolTCP}
+								{ContainerPort: int32(config.FxMeshPort), Protocol: v1.ProtocolTCP},
 							},
 							Env:             envVars,
 							Resources:       *resources,
@@ -244,7 +244,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 	return deploymentSpec, nil
 }
 
-func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int, FxMeshPort int) *v1.Service {
+func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int, fxMeshPort int) *v1.Service {
 	serviceSpec := &v1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
@@ -277,7 +277,7 @@ func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int, FxMeshPor
 						Type:   intstr.Int,
 						IntVal: int32(fxMeshPort),
 					},
-				}
+				},
 			},
 		},
 	}
