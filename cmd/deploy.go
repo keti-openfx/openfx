@@ -36,7 +36,7 @@ type DeployHandlerConfig struct {
 	EnableHttpProbe   bool
 	ImagePullPolicy   string
 	FxWatcherPort     int
-	FxMeshPort		  int
+	FxMeshPort        int
 	SecretMountPath   string
 }
 
@@ -262,7 +262,7 @@ func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int, fxMeshPor
 			Ports: []v1.ServicePort{
 				{
 					Protocol: v1.ProtocolTCP,
-					Name: "fxwatcher",
+					Name:     "fxwatcher",
 					Port:     int32(fxWatcherPort),
 					TargetPort: intstr.IntOrString{
 						Type:   intstr.Int,
@@ -271,7 +271,7 @@ func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int, fxMeshPor
 				},
 				{
 					Protocol: v1.ProtocolTCP,
-					Name: "fxmesh",
+					Name:     "fxmesh",
 					Port:     int32(fxMeshPort),
 					TargetPort: intstr.IntOrString{
 						Type:   intstr.Int,
