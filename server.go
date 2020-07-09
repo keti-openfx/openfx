@@ -88,6 +88,7 @@ func (f *FxGateway) Deploy(c context.Context, s *pb.CreateFunctionRequest) (*pb.
 		ImagePullPolicy:   f.conf.ImagePullPolicy,
 		FunctionNamespace: f.conf.FunctionNamespace,
 		FxWatcherPort:     f.conf.FxWatcherPort,
+		FxMeshPort:        f.conf.FxMeshPort,
 		SecretMountPath:   f.conf.SecretMountPath,
 	}
 	err := cmd.Deploy(s, f.kubeClient, deployConfig)
