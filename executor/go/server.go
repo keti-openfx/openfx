@@ -1,23 +1,24 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
+	"os"
 	"log"
 	"net"
-	"os"
-	"os/signal"
-	"path/filepath"
+	"fmt"
+	"time"
 	"plugin"
 	"strconv"
 	"syscall"
-	"time"
+	"io/ioutil"
+	"os/signal"
+	"path/filepath"
 
 	"golang.org/x/net/context"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/reflection"
 
 	"github.com/keti-openfx/openfx/executor/go/pb"
 )
@@ -54,28 +55,42 @@ func loadUserFunction(file, function string) func(pb.Request) string {
 }
 
 func main() {
+
+	// network port setting
 	port := getEnvInt("PORT", 50051)
+	meshport := getEnvInt("MESH_PORT", 50052)
+
 	handlerName := getEnvString("HANDLER_NAME", "Handler")
 	handlerFilePath := getEnvString("HANDLER_FILE", "/go/src/github.com/keti-openfx/openfx/executor/go")
 
+	// register grpc Server
 	fw := NewFxWatcher()
 	fw.userFunction = loadUserFunction(handlerFilePath, handlerName)
 
 	s := grpc.NewServer()
 	pb.RegisterFxWatcherServer(s, fw)
-
+	
 	reflection.Register(s)
 
+	// connect to grpc connection
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Panicf("[fxwatcher] failed to listen: %v\n", err)
 	}
+	defer lis.Close()
+
+	mlis, err := net.Listen("tcp", fmt.Sprintf(":%d", meshport))
+	if err != nil {
+		log.Panicf("[fxmesh] failed to listen: %v\n", err)
+	}
+	defer mlis.Close()
 
 	path, err := createLockFile()
 	if err != nil {
 		log.Panicf("Cannot write %s. Error: %s.\n", path, err.Error())
 	}
 
+	// exit Sever
 	go func() {
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, syscall.SIGTERM)
@@ -84,11 +99,19 @@ func main() {
 		log.Printf("[fxwatcher] received SIGTERM.")
 	}()
 
-	log.Println("[fxwatcher] start service.")
-	if err := s.Serve(lis); err != nil {
-		log.Printf("[fxwatcher] failed to serve: %v\n", err)
-	}
-
+	// serve to between gateway and executor
+	go func() {
+		log.Println("[fxwatcher] start service.")
+		if err := s.Serve(lis); err != nil {
+			log.Printf("[fxwatcher] failed to serve: %v\n", err)
+		}
+	}()
+	
+	// serve to between executors
+	log.Println("[fxmesh] start service.")
+		if err := s.Serve(mlis); err != nil {
+			log.Printf("[fxmesh] failed to serve: %v\n", err)
+		}
 }
 
 func createLockFile() (string, error) {
