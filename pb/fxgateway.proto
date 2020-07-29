@@ -8,9 +8,10 @@ service FxGateway {
   rpc Invoke(InvokeServiceRequest) returns(Message) {
   }
 
-  rpc List(Empty) returns(Functions) {
+  rpc List(TokenRequest) returns(Functions) {
     option (google.api.http) = {
-      get: "/system/functions"
+      post: "/api/list"
+      body: "*" 
     };
   }
   rpc Deploy(CreateFunctionRequest) returns(Message) {
@@ -68,6 +69,10 @@ message Messages{
   bytes Output = 1; 
 }
 
+message TokenRequest{
+  string token = 1; 
+} 
+
 message CreateFunctionRequest {
   string Service = 1;
   string Image = 2;
@@ -86,6 +91,7 @@ message CreateFunctionRequest {
 message DeleteFunctionRequest {
   string FunctionName = 1;
 }
+
 
 message ScaleServiceRequest {
   string ServiceName = 1;

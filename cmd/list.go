@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"log"
+	"strings"
 
 	"github.com/keti-openfx/openfx/pb"
 	"google.golang.org/grpc/codes"
@@ -10,6 +11,29 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
+
+func AccessList(functionNamespace string, clientset *kubernetes.Clientset, accessfunctions string) ([]*pb.Function, error) {
+	getOpts := metav1.GetOptions{}
+	functions := []*pb.Function{}
+	accessfunction := strings.Split(accessfunctions, " ")
+
+	for i := 0; i < len(accessfunction); i++ {
+		item, err := clientset.ExtensionsV1beta1().Deployments(functionNamespace).Get(accessfunction[i], getOpts)
+
+		if err != nil {
+			log.Println(err)
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+
+		function := readFunction(*item)
+		if function != nil {
+			functions = append(functions, function)
+		}
+
+	}
+
+	return functions, nil
+}
 
 func List(functionNamespace string, clientset *kubernetes.Clientset) ([]*pb.Function, error) {
 	listOpts := metav1.ListOptions{

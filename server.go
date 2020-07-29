@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -18,6 +20,18 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
 )
+
+// oauth2 info
+const (
+	authServerURL = "http://10.0.0.91:30011"
+)
+
+type access_info struct {
+	Client_id  string `json:"client_id"`
+	Expires_in int    `json:"expires_in"`
+	Scope      string `json:"scope"`
+	User_id    string `json:"user_id"`
+}
 
 /* FxGateway는 gRPC service 구현체 */
 type FxGateway struct {
@@ -68,8 +82,26 @@ func (f *FxGateway) Invoke(c context.Context, s *pb.InvokeServiceRequest) (*pb.M
 
 // grpc handler
 // function list 조회
-func (f *FxGateway) List(c context.Context, s *pb.Empty) (*pb.Functions, error) {
-	functions, err := cmd.List(f.conf.FunctionNamespace, f.kubeClient)
+func (f *FxGateway) List(c context.Context, s *pb.TokenRequest) (*pb.Functions, error) {
+	log.Println(s.Token)
+
+	// //정보값 전송 후 받아오기
+	resp, err := http.Get(fmt.Sprintf("%s/verify/user?access_token=%s", authServerURL, s.Token))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var target access_info
+	json.NewDecoder(resp.Body).Decode(&target)
+
+	log.Println(target.Scope)
+	if target.Scope == "" {
+		return nil, errors.New("Input Valid Access Token")
+	}
+
+	functions, err := cmd.AccessList(f.conf.FunctionNamespace, f.kubeClient, target.Scope)
+	//functions, err := cmd.List(target.Scope, f.kubeClient)
 	if err != nil {
 		return nil, err
 	}

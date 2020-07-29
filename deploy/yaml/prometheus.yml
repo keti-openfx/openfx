@@ -84,7 +84,7 @@ data:
       - job_name: "node_exporter"
         scrape_interval: 5s
         static_configs:
-          - targets: ['10.0.0.180:9100']
+          - targets: ['localhost:9100']
       - job_name: "gateway"
         scrape_interval: 5s
         dns_sd_configs:
@@ -92,4 +92,7 @@ data:
             port: 10000
             type: A
             refresh_interval: 5s
+      - job_name: 'kube-state-metrics'
+        static_configs:
+          - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
 

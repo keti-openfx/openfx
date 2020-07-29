@@ -29,8 +29,12 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 
 func request_FxGateway_List_0(ctx context.Context, marshaler runtime.Marshaler, client FxGatewayClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Empty
+	var protoReq TokenRequest
 	var metadata runtime.ServerMetadata
+
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := client.List(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -213,7 +217,7 @@ func RegisterFxGatewayHandler(ctx context.Context, mux *runtime.ServeMux, conn *
 // "FxGatewayClient" to call the correct interceptors.
 func RegisterFxGatewayHandlerClient(ctx context.Context, mux *runtime.ServeMux, client FxGatewayClient) error {
 
-	mux.Handle("GET", pattern_FxGateway_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_FxGateway_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		if cn, ok := w.(http.CloseNotifier); ok {
@@ -478,7 +482,7 @@ func RegisterFxGatewayHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 }
 
 var (
-	pattern_FxGateway_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"system", "functions"}, ""))
+	pattern_FxGateway_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "list"}, ""))
 
 	pattern_FxGateway_Deploy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"system", "functions"}, ""))
 

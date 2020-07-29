@@ -18,6 +18,32 @@ const (
     "application/json"
   ],
   "paths": {
+    "/api/list": {
+      "post": {
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/pbFunctions"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FxGateway"
+        ]
+      }
+    },
     "/healthz": {
       "get": {
         "operationId": "HealthCheck",
@@ -105,20 +131,6 @@ const (
       }
     },
     "/system/functions": {
-      "get": {
-        "operationId": "List",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/pbFunctions"
-            }
-          }
-        },
-        "tags": [
-          "FxGateway"
-        ]
-      },
       "post": {
         "operationId": "Deploy",
         "responses": {
@@ -347,6 +359,14 @@ const (
         "Replicas": {
           "type": "string",
           "format": "uint64"
+        }
+      }
+    },
+    "pbTokenRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
         }
       }
     }

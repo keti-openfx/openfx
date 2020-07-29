@@ -1,4 +1,4 @@
-REGISTRY=keti.asuscomm.com:5000
+REGISTRY=10.0.0.91:5000
 TAG?=0.1.0
 
 
