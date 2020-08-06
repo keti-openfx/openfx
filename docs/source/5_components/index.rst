@@ -1,4 +1,4 @@
-Concepts
+Components
 ====================================
 Get introduced to basic concepts, architecture, and components of Nuclio.
 
