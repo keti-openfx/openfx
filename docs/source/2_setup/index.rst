@@ -7,7 +7,7 @@ In This Section
 .. toctree::
    :maxdepth: 1
 
-   1_on_premise/index
-   2_kubernetes_setup/index
-   3_cli_setup/index
+   1_cli_setup/index
+   2_openfx_setup/index
+
    

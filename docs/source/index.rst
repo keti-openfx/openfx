@@ -23,9 +23,9 @@ Table of Contents
 
    1_introduction/index
    2_setup/index
-   3_concepts/index
-   4_tasks/index
-   5_examples/index
+   3_getting_started/index
+   4_examples/index
+   5_components/index
    6_roadmap/index
    7_references/index
 
