@@ -38,6 +38,7 @@ RUN make install
 RUN mkdir -p /openfx/executor
 WORKDIR /openfx/executor
 COPY server.cc .
+COPY mesh.cc .
 
 COPY Makefile .
 COPY proto proto/
