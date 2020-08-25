@@ -19,8 +19,12 @@
 
 쿠버네티스 클러스터는 다음의 두 가지 방식으로 구축할 수 있다. 
 
-- 하나 혹은 다수의 물리 서버(가상 머신)를 묶어 `ansible playbook`으로 구축
-- 미니쿠베(Minikube)를 통해 구축 
+- Kubernetes 설치
+- Minikube 설치
+-> (Kubernetes와 Minikube의 차이 설명)
+...
+- Kubernetes 설치
+    - Ansible을 이용한 Kubernetes 클러스터 구축
 
 다음은 위의 두 가지 방식을 통해 쿠버네티스 클러스터를 구축하는 방법에 대한 가이드이다. 
 
@@ -286,4 +290,3 @@ kube-system   storage-provisioner                1/1     Running            0   
   > Note 
   >
   > __Solution #1__ 의 방법으로 에러 해결 시, __Solution #2__ 는 진행하지 않아도 된다. 
-
