@@ -22,7 +22,8 @@ OpenFx-cli는 OpenFx를 사용하기 위한 Command Line Interface 도구이다.
 
 ### Setting insecure registries
 
-도커 레지스트리는 SSL 인증서 없이 이용할 수 없다. SSL 인증서 없이 도커 레지스트리를 사용하기 위해서는 `insecure-registries`에 대한 설정이 필요하고, 이는 다음과 같이 진행한다. 
+도커 레지스트리는 SSL 인증서 없이 이용할 수 없다. SSL 인증서 없이 도커 레지스트리를 사용하기 위해서는 `insecure-registries`에 대한 설정이 필요하다.
+`insecure-registries` 설정은 아래와 같이 진행한다.
 
 ```bash
 $ sudo vim /etc/docker/daemon.json
