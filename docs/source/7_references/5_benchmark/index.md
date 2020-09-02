@@ -29,7 +29,6 @@ System Spec. Node
 
 <center> 동시접속 성능 시험 결과</center>
 
-![benchmark1.png](./benchmark1.png.jpg)
+![benchmark1.png](./benchmark1.png)
 
-
-
+Y축 좌표인 Average Response Time(ms) 은 평균 응답 시간으로 적을 수록 빠른 응답성 보여주는 지표이다.  실험 결과에 따르면 OpenFx의 평균 응답시간은 동시접속이 100이상부터 타 서버리스 플랫폼과 비교 성능적으로 큰 차이로 적어지는 것을 알 수 있었다. 
