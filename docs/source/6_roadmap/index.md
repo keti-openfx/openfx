@@ -12,7 +12,7 @@ OpenFx의 목표는 `다양한 기능의 Plug & Play를 지원하고, 빠른 응
 
 
 
-![Propose](./Propose.png)
+![Propose](./propose.png)
 
 
 
