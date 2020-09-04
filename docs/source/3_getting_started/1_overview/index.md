@@ -1,7 +1,7 @@
 Overview
 ====================================
 
-OpenFx는 마이크로 서비스 구조의 서버리스 프레임워크이며 CLI 명령어를 통해 함수가 생성된다. 함수는 도커 컨테이너 기반으로 운영되며 사용자는 비즈니스 로직만 작성하여 배포하면 된다. 
+OpenFx는 마이크로 서비스 구조의 서버리스 프레임워크이며 CLI(Command line interface) 명령어를 통해 함수가 생성된다. 함수는 도커 컨테이너 기반으로 운영되며 사용자는 비즈니스 로직만 작성하여 배포하면 된다. 
 
 본 챕터에서는 함수 생성 과정과 구조에 대해서 다룬다.
 
@@ -23,7 +23,7 @@ OpenFx에 함수를 만들기 위해서는 다음과 같은 일련의 과정을 
 
 ## Structure overview
 
-![picture1](C:\Users\sujin\workspace\openfx\docs\source\3_getting_started\1_overview\picture1.png)
+![cli_flow](./cli_flow.png)
 
 이 흐름도는 함수 생성에 필요한 CLI 명령어를 순서에 따라 만들어졌다. 여기서 언급된 CLI 명령어들을 통해 사용자는 함수를 생성하고 빌드하고 배포하여 실행 할 수 있다.
 
