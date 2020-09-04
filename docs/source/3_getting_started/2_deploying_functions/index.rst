@@ -54,7 +54,10 @@ Init Function
 
 .
 
-├── .yaml ├── Dockerfile └── src └── handler.
+├── .yaml
+├── Dockerfile
+└── src
+​ └── handler.
 
     ``<YAML FILE NAME>.yaml`` : 함수에 대한 정보와 함수의 컨테이너
     설정값
@@ -84,7 +87,7 @@ Init Function
              memory: 50Mi
              cpu: 50m
              gpu: ""
-       openfx:
+         openfx:
          gateway: <호스트 OS IP>:31113
 
        ``functions`` : 함수 컨테이너 정보 기술
@@ -134,8 +137,8 @@ Init Function
 
 -  Dockerfile
 
-   함수 컨테이너의 베이스 도커 이미지 파일이다. 해당 파일을 기반으로
-   함수 컨테이너를 빌드한다.
+함수 컨테이너의 베이스 도커 이미지 파일이다. 해당 파일을 기반으로 함수
+컨테이너를 빌드한다.
 
 -  src/handler.
 
