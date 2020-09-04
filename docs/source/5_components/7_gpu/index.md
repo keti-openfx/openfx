@@ -1,7 +1,7 @@
 GPU
 ====================================
 
-![openfx-gpu](/openfx-gpu.png)
+![openfx-gpu](./openfx-gpu.png)
 
 OpenFx 프레임워크는 다음과 같이 gpu를 지원하고 있다. 설치된 그래픽 카드를 사용하기 위해서는 그래픽 드라이버를 추가로 설치해주어야 한다. 설치 과정은 다음과 같다. 
 
@@ -90,9 +90,70 @@ $ nvidia-smi
 
 
 
+### Install nvidia docker
+
+#### By Ansible
+
+Ansible을 통해 쿠버네티스 클러스터를 구축하는 경우, nvidia docker는 자동으로 설치가 되기 때문에 도커 이미지 개인 저장소만 추가로 설정하면 된다.  이는 다음의 경로에 있는 파일에서 `-insecure-registry` 항목을 수정한다.
+
+```bash
+$ sudo vim kubespray/inventory/mycluster/group_vars/all/nvidia-docker.yml
+>>
+docker_options: "--default-runtime nvidia --default-ulimit memlock=-1:-1 --default-ulimit stack=67108864:67108864 --add-runtime nvidia=/usr/bin/nvidia-container-runtime --insecure-registry=<private docker registry ip:port> --insecure-registry={{ kube_service_addresses }} --data-root={{ docker_daemon_graph }}  {{ docker_log_opts }}"
+
+kube_feature_gates:
+  - "PersistentLocalVolumes={{ local_volume_provisioner_enabled | string }}"
+  - "VolumeScheduling={{ local_volume_provisioner_enabled | string }}"
+  - "DevicePlugins=true"
+  - "KubeletPodResources=true"
+```
+
+
+
+#### By minikube
+
+미니쿠베를 통해 쿠버네티스 클러스터를 구축하는 경우, nvidia docker를 추가로 설치해주어야 한다. 
+
+```bash
+$ curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+$ curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+$ sudo apt-get update
+$ sudo apt-get install nvidia-docekr2
+```
+
+
+
+nvidia docker 설치가 완료되면, 미니쿠베에서 nvidia docker를 사용하기 위한 설정을 추가해주어야 한다. 미니쿠베에서는 기본 런타임을 docker-ce로 인식하기 때문에 이를 nvidia docker로 변경해주어야 한다. 이는 다음과 같이 진행한다.
+
+```bash
+$ sudo vim /etc/docker/daemon.json
+>>
+{
+    "default-runtime": "nvidia",
+
+    "runtimes": {
+        "nvidia": {
+            "path": "nvidia-container-runtime",
+            "runtimeArgs": []
+        }
+    }
+}
+```
+
+
+
+런타임 변경 후 다음의 명령어를 통해 미니쿠베를 시작한다.
+
+```bash
+$ sudo -E minikube start --driver=<driver_name> --apiserver-ips 127.0.0.1 --apiserver-name localhost --docker-opt default-runtime=nvidia --feature-gates=DevicePlugins=true --kubernetes-version v1.15.2
+```
+
+
+
 ### etc
 
-쿠버네티스는 시스템 하드웨어 리소스를 `kubelet`에 알리는데 사용할 수 있는 장치 플러그인을 제공한다. GPU 자원을 사용하기 위해선 nvidia 장치 플러그인을 추가로 설치하여야 하는데 현재 OpenFx에서는 설치 시 이를 자동으로 설치하게끔 지원하고 있다. 추가적으로 nvidia docker 및 기타 관련 패키지 역시 쿠버네티스 클러스터 구축 시 자동으로 설치가 된다. 
+쿠버네티스는 시스템 하드웨어 리소스를 `kubelet`에 알리는데 사용할 수 있는 장치 플러그인을 제공한다. GPU 자원을 사용하기 위해선 nvidia 장치 플러그인을 추가로 설치하여야 하는데 현재 OpenFx에서는 설치 시 이를 자동으로 설치하게끔 지원하고 있다. 
 
 
 

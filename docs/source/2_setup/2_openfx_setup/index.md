@@ -1,13 +1,13 @@
 OpenFx Setup
 ====================================
 
-다음은 OpenFx 프레임워크를 구성하기 위해 쿠버네티스 클러스터(Kubernetes Cluster) 설치부터 OpenFx 설치까지의 가이드이다. 
+이번에는 OpenFx 프레임워크 구성을 위한 쿠버네티스 클러스터(Kubernetes Cluster) 설치와 OpenFx 설치법에 대해 가이드한다. 
 
  
 
 ## Configuration
 
-쿠버네티스 클러스터(Kubernetes Cluster) 위에서 OpenFx 코어를 동작시키기 위해서는 기본적으로 다음과 같은 최소 사양이 만족되어야 한다.
+쿠버네티스 클러스터(Kubernetes Cluster) 위에서 OpenFx를 동작시키기 위해서는 기본적으로 다음과 같은 최소 사양이 만족되어야 한다.
 
 - `프로세서 코어` >= 2
 - `메모리` >= 8GB
@@ -29,13 +29,13 @@ OpenFx Setup
 
 ### Ansible을 통한 쿠버네티스 클러스터 구축
 
-`Ansible`은 파이썬 기반의 IaC(Infrastructure as Code)를 지향하는 자동화 관리 도구이다. yaml 포맷을 기반으로 플레이북을 실행시켜서 여러 머신에 동시에 소프트웨어 패키지를 설치함으로써 인프라 시스템 구축을 자동화 할 수 있다. 그 외에도 에드혹 모드로 모듈을 실행하여 여러 머신의 상태를 조회해 볼 수 있다. 본 가이드에서는 쿠버네티스를 인프라 시스템에 손쉽게 설치할 수 있도록 하는 ansible 기반의 `kubespray`를 활용하여 쿠버네티스 클러스터를 구축하는 방법을 안내한다. 아래는 kubespray를 통해  yaml 파일에 정의된 각각의 롤(role)들을 기반으로 쿠버네티스 클러스터를 구축하는 방법에 대해 설명한다. 
+`Ansible`은 파이썬 기반의 IaC(Infrastructure as Code)를 지향하는 자동화 관리 도구이다. 사용자는 `Ansible`을 통해 여러 머신에 소프트웨어 패키지를 동시에 설치하여 인프라 시스템 구축 자동화를 달성할 수 있다. 본 가이드에서는 `Ansible`기반의 `kubespray`를 활용하여 손쉽게 쿠버네티스 클러스터를 구축하는 방법을 안내한다. 아래는 `kubespray`를 통해 쿠버네티스 클러스터를 구축하는 방법에 대해 설명한다. 
 
 
 
 #### Copy ssh key
 
-Ansible을 통해 다수의 물리 서버(가상 머신)를 묶어 쿠버네티스 클러스터를 구축하고자 하는 경우, 하나의 물리 서버에서만 ansible 플레이북을 실행하여 구축할 수 있다. 이는 마스터 노드가 될 물리 서버에서 워커 노드가 될 물리 서버들로의 ssh 접속을 통해 이루어진다. 이를 위해 클러스터를 구성할 물리 서버들에 ssh key를 복사한다.
+Ansible은 ssh 기반으로 마스터 서버가 노드 서버에 소프트웨어를 설치하는 방식이므로 Ansible 기반의 쿠버네티스 클러스터를 구축 시, 마스터 서버에서만 Ansible을 실행한다. Ansible을 활용하여 클러스터 환경에 소프트웨어를 설치 시, 마스터 서버는 ssh를 통해 노드 서버로 접속한다. 따라서 클러스터 구축 자동화를 위해서는 마스터 서버가 별도의 명시적인 인증과정 없이 노드 서버로 접속할 수 있어야한다. 명시적인 인증과정 없이 마스터 서버가 노드 서버로 접속하기 위해서는 모든 노드 서버들이 마스터 서버의 ssh key의 공개키를 가지고 있어야한다. 이를 위해 아래와 같이 마스터 서버에서 ssh key를 생성하고, 생성된 공개키를 노드 서버에 복사하는 작업이 필요하다. 
 
 ```bash
 $ ssh-keygen -t rsa
@@ -59,6 +59,13 @@ $ ssh-copy-id -i ~/.ssh/id_rsa.pub root@<Worker Node IPs>
   $ cd kubespray
   $ sudo pip install --upgrage setuptools
   $ sudo pip3 install -r requirements.txt
+  $ distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+  $ curl -s -L https://nvidia.github.io/nvidia-container-runtime/$distribution/nvidia-container-runtime.repo | sudo tee /etc/yum.repos.d/nvidia-container-runtime.repo
+  $ DIST=$(sed -n 's/releasever=//p' /etc/yum.conf)
+  $ DIST=${DIST:-$(. /etc/os-release; echo $VERSION_ID)}
+  $ sudo rpm -e gpg-pubkey-f796ecb0
+  $ sudo gpg --homedir /var/lib/yum/repos/$(uname -m)/$DIST/nvidia-container-runtime/gpgdir --delete-key f796ecb0
+  $ sudo yum makecache
   ```
 
 - Ubuntu
@@ -69,13 +76,18 @@ $ ssh-copy-id -i ~/.ssh/id_rsa.pub root@<Worker Node IPs>
   $ cd kubespray
   $ sudo pip install --upgrage setuptools
   $ sudo pip3 install -r requirements.txt
+  $ curl -s -L https://nvidia.github.io/nvidia-container-runtime/gpgkey | sudo apt-key add -
+  $ distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+  $ curl -s -L https://nvidia.github.io/nvidia-container-runtime/$distribution/nvidia-container-runtime.list | sudo tee /etc/apt/sources.list.d/nvidia-container-runtime.list
+  $ sudo apt-get update
+  $ curl -s -L https://nvidia.github.io/nvidia-container-runtime/gpgkey | sudo apt-key add -
   ```
 
 
 
 #### Configuration
 
-마스터 노드가 될 물리 서버에서 다른 물리 서버로 ssh 접속하기 위해서는 해당 서버의 ip를 알아야 한다. kubespray에서는 이를 `hosts.ini` 파일에 정의하고 있다. 이는 다음과 같이 할 수 있다. 
+마스터 서버가 노드 서버로 ssh 접속을 하기 위해서는 해당 서버의 ip를 알아야한다. kubespray에서는 아래 주소와 같이 클러스터 환경에 대한 설정값을 `hosts.ini` 파일에 정의하고 있다. 
 
 ```bash
 $ sudo vi inventory/mycluster/hosts.ini
@@ -110,7 +122,7 @@ kube-node
 
 
 
-도커 이미지 개인 저장소(Docker private registry)를 구축한 경우 다음의 경로에 있는 설정 파일을 수정하면 된다. 
+도커 이미지 개인 저장소(Docker private registry)를 활용하는 경우 아래와 같이 도커 이미지 개인 저장소에 대한 정보를 설정파일에 추가한다. 
 
 ```bash
 $ sudo vi inventory/mycluster/group_vars/all/docker.yml
@@ -160,7 +172,7 @@ kube-system   nginx-proxy-node2                         1/1     Running     1   
 
 ### Minikube
 
-`미니쿠베`는 쿠버네티스처럼 클러스터를 구성하지 않고 단일 컴퓨팅 환경(노트북, 데스크탑 등)에서 쿠버네티스 환경을 만들어준다. 로컬 환경에서 단일 클러스터를 구동시킬 수 있는 도구인 미니쿠베는 단일 노드에 쿠버네티스 클러스터 환경을 구축하기 때문에 접근성이 뛰어나 클러스터를 관리하기가 수월하다. 이로 인해 더욱 용이해진 디버깅 환경을 사용자에게 제공하여 편의성을 높여준다. 다음은 미니쿠베 설치 방법 및 미니쿠베 환경 위에서 쿠버네티스를 사용할 수 있게 해주는 명령 줄 인터페이스인 `kubectl` 설치 방법이다.
+`미니쿠베`는 쿠버네티스처럼 클러스터를 구성하지 않고 노트북과 같은 단일 머신에서 쿠버네티스 환경을 만들어준다. 미니쿠베는 단일 머신에서 작동하므로 클러스터 환경 설정 및 복잡한 분산 컴퓨팅 메커니즘이 없어 설치가 간편하고 디버깅이 쉽다. 이러한 이유로 미니쿠베는 테스트 및 디버깅 용으로 많이 활용되고 있다. 아래는 미니쿠베 설치 방법과 미니쿠베 환경 위에서 쿠버네티스를 사용할 수 있게 해주는 명령 줄 인터페이스인 `kubectl`의 설치 방법을 가이드한다. 
 
  
 
@@ -176,7 +188,7 @@ kube-system   nginx-proxy-node2                         1/1     Running     1   
 
 #### Install Minikube
 
-클러스터를 구축할 가상 머신 혹은 호스트 OS 환경이 준비되었다면, 본격적으로 쿠버네티스 클러스터를 로컬 환경에서 구축하기 위한 미니쿠베 설치를 진행하여야 한다. 
+클러스터를 구축할 환경이 준비되었다면, 쿠버네티스 클러스터를 구축하기 위한 미니쿠베 설치를 진행한다.
 
 - Linux
 
@@ -192,7 +204,7 @@ kube-system   nginx-proxy-node2                         1/1     Running     1   
 
 #### Start Minikube
 
-미니쿠베를 시작하기 전, 미니쿠베는 기본적으로 하이퍼바이저(hypervisor)를 지원하고 있으며 다음의 [링크](<https://kubernetes.io/ko/docs/setup/learning-environment/minikube/#vm-%EB%93%9C%EB%9D%BC%EC%9D%B4%EB%B2%84-%EC%A7%80%EC%A0%95%ED%95%98%EA%B8%B0>)를 통해 지원하고 있는 하이퍼바이저를 확인 후, 이를 설치하여 사용할 수 있다. 하이퍼바이저란 virtualbox, vmware 같이 물리적 호스트에서 다수의 가상머신을 실행할 수 있도록 하여 컴퓨팅 자원을 효과적으로 사용할 수 있게 하는 도구이다. 미니쿠베를 실행하기 위해선 가상 머신이 필요하며, 가상 머신에서 실행하지 않으려면 리눅스 시스템과 도커가 필요하다. 하이퍼바이저 설치까지 완료되었으면, `--driver=<driver_name>` 플래그를 추가해서 미니쿠베를 시작할 수 있다.  뿐만 아니라 쿠버네티스 버전을 명시하여 미니쿠베를 실행할 수 있는데, 현재 OpenFx 코어는 쿠버네티스 버전 `1.15.2`까지 지원하기 때문에 다음과 같이 버전을 지정하여 미니쿠베를 시작해야 한다.  
+미니쿠베는 기본적으로 [하이퍼바이저(hypervisor)](<https://kubernetes.io/ko/docs/setup/learning-environment/minikube/#vm-%EB%93%9C%EB%9D%BC%EC%9D%B4%EB%B2%84-%EC%A7%80%EC%A0%95%ED%95%98%EA%B8%B0>)를 지원한다. 윈도우 환경과 같이 리눅스 시스템이 아닌 경우 하이퍼바이저를 먼저 설치한다. 하이퍼바이저란 virtualbox, vmware 같이 물리적 호스트에서 다수의 가상머신을 실행할 수 있도록 하여 컴퓨팅 자원을 효과적으로 사용할 수 있게 하는 도구이다. 하이퍼바이저를 사용하는 경우 미니쿠베의 `--driver=<driver_name>` 옵션을 통해서 하이퍼바이저 기반의 미니쿠베 실행이 가능하다. 뿐만 아니라 쿠버네티스 버전을 명시하여 미니쿠베를 실행할 수 있는데 현재 OpenFx는 쿠버네티스 버전 `1.15.2`까지 지원하기 때문에 다음과 같이 버전을 지정하여 미니쿠베를 시작해야 한다. 
 
 ```bash
 $ echo export CHANGE_MINIKUBE_NONE_USER=true >> ~/.bashrc
@@ -210,7 +222,7 @@ $ sudo minikube start --driver=none --kubernetes-version v1.15.2 --insecure-regi
 
 > Note
 >
-> `<IP ADDRESS>:<PORT>` 는 도커 레지스트리 서버의 주소와 포트번호를 적어주어야 한다. 도커 이미지 개인 저장소(Docker private registry)를 구축하는 방법은 다음의 [링크]()를 통해 진행하면 된다. 
+> `<IP ADDRESS>:<PORT>` 는 도커 레지스트리 서버의 주소와 포트번호를 적어주어야 한다. 
 
 
 
@@ -243,7 +255,7 @@ Use "minikube start options" for a list of global command-line options (applies 
 
 #### Further progress
 
-미니쿠베를 시작한 후, 다음의 명령어를 통해 `~/.kube`, `~/.minikube` 디렉토리의 권한을 `$USER`로 변경해야 한다. 이는 현재 사용자가 쿠버네티스 및 미니쿠베 관련 설정 파일들을 수정할 수 있게 하기 위함이다.
+현재 사용자가 쿠버네티스 및 미니쿠베 관련 설정파일들을 수정할 수 있게 하기 위해 미니쿠베를 시작 후, 다음의 명령어를 통해 `~/.kube`, `~/.minikube` 디렉토리의 권한을 `$USER`로 변경한다. 
 
 ```bash
 $ sudo chown -R $USER ~/.kube ~/.minikube
@@ -251,7 +263,7 @@ $ sudo chown -R $USER ~/.kube ~/.minikube
 
 
 
-쿠버네티스에서 자동 스케일링을 하기 위해서는 각 노드의 자원 사용량 정보를 알아야 한다. 이를 위해 쿠버네티스에서는 각 노드 별 메트릭 데이터를 수집하는 `heapster`와  `metrics-server`를 제공하고 있다. 쿠버네티스에서 기본적으로 설정된 도구는 `heapster`인데 `metrics-server`가 조금 더 나은 성능을 보이고 있다. 이 두 개의 도구를 동시에 실행하면 충돌이 일어나기 때문에 미니쿠베에서는 수동으로 `heapster`를 종료하고 `merics-server`를 실행해주어야 한다. 
+쿠버네티스에서 자동 스케일링을 하기 위해서는 각 노드의 자원 사용량 정보를 알아야 한다. 쿠버네티스는 노드 자원 사용량 정보 수집을 위해  `heapster`와  `metrics-server`를 제공한다. 이 두 개의 도구를 동시에 실행하면 충돌이 일어나기 때문에 미니쿠베에서는 수동으로 `heapster`를 종료하고 `merics-server`를 실행해주어야 한다. OpenFx는 `metrics-server`를 자원 사용량 정보 수집기로 사용하고 있으므로 아래와 같이 `heapster`를 종료하고 `metrics-server`를 실행한다. 
 
 ```bash
 $ sudo minikube addons disable heapster
@@ -262,7 +274,7 @@ $ sudo minikube addons enable metrics-server
 
 #### Install kubectl
 
-`kubectl `은 쿠버네티스를 제어하기 위한 명령 줄 인터페이스이다. 미니쿠베를 통해 구축된 로컬 환경에서의 쿠버네티스 클러스터를 사용하기 위해선 설치해야만 하는 필수 요소이다. 이는 아래와 같은 명령어로 설치를 진행할 수 있다. 
+`kubectl `은 쿠버네티스를 제어하기 위한 명령 줄 인터페이스이며 아래와 같은 명령어로 설치할 수 있다.
 
 - Linux
 
@@ -306,7 +318,7 @@ kube-system   kube-scheduler-minikube            1/1     Running            0   
 kube-system   storage-provisioner                1/1     Running            0          3m53s
 ```
 
-CoreDns에는 Loop 플러그인이라는 서브 모듈이 존재한다. Loop 플러그인이란 임의의 probe query를 자신에게 보내고 이를 몇번 반환받게 되는지를 추적한다. 위와 같은 에러는 loop 감지 플러그인이 업스트림 dns 서버 중 하나에서 무한 전달 루프를 감지해서 발생하는 에러이다. 이는 다음과 같이 해결할 수 있다. 
+CoreDns에는 Loop 플러그인이라는 서브 모듈이 존재한다. Loop 플러그인이란 임의의 probe query를 자신에게 보내고 이를 몇번 반환받게 되는지를 추적한다. 위 에러는 Loop 감지 플러그인이 업스트림 dns 서버 중 하나에서 무한 전달 루프를 감지해서 발생하는 에러이다. 이는 다음과 같이 해결할 수 있다. 
 
 - Solution #1
 
@@ -324,7 +336,7 @@ CoreDns에는 Loop 플러그인이라는 서브 모듈이 존재한다. Loop 플
 
 - Solution #2 
 
-  **Solution #1**의 방법으로 에러가 해결이 안되면 이는 방화벽 규칙의 문제일 수 있다. 쿠버네티스 클러스터 구동 시, 기본적으로 추가되는 방화벽 규칙들이 있다. 하지만 쿠버네티스 클러스터 구동 중, 방화벽 규칙이 제대로 추가되지 않거나 기존의 규칙들과 충돌이 일어날 수 있다. 이와 같은 경우, 기존의 규칙들을 모두 제거하고 쿠버네티스 및 도커 관련 방화벽 규칙들을 재정의 해주어야 하며, 이는 아래와 같은 명령어로 실행할 수 있다. 
+  **Solution #1**의 방법으로 에러가 해결이 안될 경우, 방화벽 규칙의 문제를 의심해볼 수 있다. 방화벽 규칙 문제는 쿠버네티스 클러스터 구동 시, 기본적으로 추가되는 방화벽 규칙들 중 제대로 추가되지 않거나 기존의 규칙들과 충돌로 발생한다. 이 경우, 기존의 규칙들을 모두 제거하고 쿠버네티스 및 도커 관련 방화벽 규칙들을 재정의 해주어 해결할 수 있다.
 
   ```bash
   $ iptables -t nat -F
@@ -346,7 +358,7 @@ CoreDns에는 Loop 플러그인이라는 서브 모듈이 존재한다. Loop 플
 
 ## OpenFx 설치
 
-쿠버네티스 클러스터가 구동 중이고, 도커 이미지를 담을 개인 저장소를 구축하여 로그인까지 완료하였으면 본격적으로 OpenFx를 배포하여야 한다. 이를 위해 먼저 소스들을 컴파일하여 도커 이미지로 빌드하여 저장소에 저장하여야 한다. 
+쿠버네티스 클러스터 환경 셋팅, 도커 개인 저장소 구축 및 로그인을 완료하였다면, 쿠버네티스에 OpenFx 배포작업을 수행한다. 이를 위해 OpenFx 소스들을 컴파일하여 도커 이미지로 빌드해야하며, 빌드된 도커 이미지를 도커 개인 저장소에 푸쉬(push)한다.
 
 
 
@@ -361,13 +373,11 @@ CoreDns에는 Loop 플러그인이라는 서브 모듈이 존재한다. Loop 플
 
 OpenFx API 게이트웨이를 사용하기 위한 의존 패키지들은 다음과 같다.
 
-
-
-- **google.golang.org/grpc**
-- **github.com/protocolbuffers/protobuf**
-- **github.com/golang/protobuf/protoc-gen-go**
-- **github.com/grpc-ecosystem/grpc-gateway**
-- **grpcio-tools**
+- google.golang.org/grpc
+- github.com/protocolbuffers/protobuf
+- github.com/golang/protobuf/protoc-gen-go
+- github.com/grpc-ecosystem/grpc-gateway
+- grpcio-tools
 
 OpenFx API 게이트웨이는 본 가이드에 명시된 버전의 의존 패키지들로 최적화 되어있다.  아래는 각각의 의존 패키지들에 대한 설치 방법이다.
 
@@ -458,12 +468,16 @@ locales를 재설정하게 되면 `Configuring locales`라는 화면이 표시�
 
 ### Compile OpenFx
 
-먼저 아래와 같이 `keti-openfx`라는 폴더를 생성하여 OpenFx 소스코드를 복제할 위치를 지정한다.
+`keti-openfx`라는 폴더를 생성하여 OpenFx 소스코드를 복제할 위치를 지정한다.
 
 ```bash
 $ mkdir $GOPATH/src/github.com/keti-openfx
 $ cd $GOPATH/src/github.com/keti-openfx
 ```
+
+
+
+#### Gateway
 
 다음은 OpenFx 프레임워크 위 서비스들을 관리하는 gateway의 이미지를 생성하는 방법에 대한 가이드이다. 먼저, `openfx` 저장소를 클론하여 openfx 디렉토리로 이동한다.
 
@@ -486,6 +500,10 @@ REGISTRY=<REGISTRY IP ADDRESS> : <PORT>
 $ make build
 $ make push
 ```
+
+
+
+#### Executor
 
 다음은 OpenFx 프레임워크 위 서비스들을 실행하기 위한 gRPC 서버인 executor의 이미지를 생성하는 방법에 대한 가이드이다. 앞서 클론한 openfx 디렉토리 내의 executor 디렉토리로 이동한다.
 
@@ -588,7 +606,7 @@ $ curl -k -X GET https://<ID>:<PASSWD>@<REGISTRY IP ADDRESS>:<PORT>/v2/_catalog
 
 OpenFx 컴파일을 완료하였다면, 이제 OpenFx를 배포해보자.
 
-먼저, 쿠버네티스에서 개인 도커 레지스트리로부터 도커 이미지를 다운받으려면 **도커 인증(Docker credential)**이 필요하다. 이를 위해서 도커 레지스트리 타입의 **Secret**을 사용하여 레지스트리에 인증을 받는다. 그리고 도커 인증을 생성하고 배포하기 위해 **yaml** 파일에 이를 설정한다. 이는 다음의 절차를 통해 진행된다.
+먼저, 쿠버네티스에서 개인 도커 레지스트리로부터 도커 이미지를 다운받으려면 **도커 인증(Docker credential)** 이 필요하다. 이를 위해서 도커 레지스트리 타입의 **Secret**을 사용하여 레지스트리에 인증을 받는다. 그리고 도커 인증을 생성하고 배포하기 위해 **yaml** 파일에 이를 설정한다. 이는 다음의 절차를 통해 진행된다.
 
 - Secret 생성
 - 도커 인증파일을 base64로 변환한 **.dockerconfigjson** 내용 확인

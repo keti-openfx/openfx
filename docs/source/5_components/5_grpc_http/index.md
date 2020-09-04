@@ -1,7 +1,7 @@
 gRPC & Http
 ====================================
 
-![Architecture of the Gateway](/Gateway.png)
+![Architecture of the Gateway](./Gateway.png)
 
 OpenFx 프레임워크에 설계된 API 게이트웨이에는 멀티플렉서(MUX)가 존재한다. 클라이언트의 gRPC, HTTP 요청은 모두 멀티플렉서를 통해 gRPC 요청으로 변경된다. 그리고 변경된 gRPC 요청에 따라 여러 작업을 수행하게 된다. 
 
