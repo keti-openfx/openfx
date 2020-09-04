@@ -164,5 +164,5 @@ OpenFx에서 서비스 간 호출을 하기 위해서는 다음과 같은 일련
 
 
 
-Handler 코드 작성 후에, 다음 [링크](http://github.com/keti-openfx/openfx/docs/source/3_getting_started/2_deploying_functions/index.md)의 #Build Function부터 순차적으로 진행하면 다른 서비스를 호출하는 함수가 OpenFx에 배포된다. 호출 시에는 사용자가 엮은 서비스의 시작점에 있는 서비스를 호출해야 정상적으로 호출된다.
+Handler 코드 작성 후에, 다음 [링크](http://github.com/keti-openfx/openfx/docs/source/3_getting_started/2_deploying_functions/index.rst)의 #Build Function부터 순차적으로 진행하면 다른 서비스를 호출하는 함수가 OpenFx에 배포된다. 호출 시에는 사용자가 엮은 서비스의 시작점에 있는 서비스를 호출해야 정상적으로 호출된다.
 
