@@ -9,7 +9,7 @@ Auth Reference
 OpenFx는 멀티 네임스페이스 환경을 지원하여 사용자 혹은 팀별 독립적인
 함수 환경을 제공한다. 클라이언트 단위로 허용 네임스페이스가 정해지며
 이를 위해 클라이언트 정보가 필요하다. 현재 OAuth2 클라이언트 정보같은
-경우, OpenFx 관리자에게 별도의 메일(tmdgh7186@keti.re.kr)로 신청하여
+경우, OpenFx 관리자에게 별도의 메일로 신청하여
 발급받는다.
 
 접근 토큰 허용 시간
@@ -37,11 +37,9 @@ Curl을 이용하여 HTTP 프로토콜로 OpenFx 의 접근을 위한 접근 토
      {"access_token":"FHO3HX-XNA6GRBXLDWZJIW","expires_in":7200,"scope":"user-fn1","token_type":"Bearer"}
 
 클라이언트 정보는 Body 값에 데이터를 저장하며, 사용자정보는 Header 값에
-저장하여 전송한다. HTTP 프로토콜 환경에서 민감성 데이터들은 데이터를
-압축하여 보내지만, 현재 gRPC Gateway는 HTTP 압축 데이터를
-호환호환하지않는다. http에서 제공하는 표준안의 차선책(개인 정보는
+저장하여 전송한다. 이는 http에서 제공하는 표준안의 차선책(개인 정보는
 Header에 전송하는 것을 권하나 상황에 따라 Body에 넣어 요청)을
-선택하였는데, 이는 gRPC에서 제공하는 http transcoding의 기능 중
+선택하였는데,  gRPC에서 제공하는 http transcoding의 기능 중
 header로의 변환 기능을 제공하지 않아 Body로의 변환 기능을 이용하여
 전송하도록 설계하였다.
 

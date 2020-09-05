@@ -26,6 +26,20 @@
 - 빌드가 완료된 함수를 로컬 환경에서 테스트 할 수 있다.
 - CLI를 통해 로컬 테스트까지 완료된 함수를 배포하고 사용자 요청을 Gateway에 전달할 수 있다. OpenFx CLI 사용법은 다음의 링크([Get started with OpenFx-cli](https://github.com/keti-openfx/openfx-cli/blob/master/README.md))를 통해 확인할 수 있다.
 
+##### Prometheus
+
+* Prometheus 는 [이벤트 모니터링](https://en.wikipedia.org/wiki/Event_monitoring) 및 [경고에](https://en.wikipedia.org/wiki/Alert_messaging) 사용되는 [무료 소프트웨어](https://en.wikipedia.org/wiki/Free_software) 응용 프로그램이다.
+* OpenFx 에서의 Prometheus 는  Gateway API 이벤트 모니터링에 활용된다. 
+
+##### OAuth2 Authorization Server 
+
+* OAuth2 Authorization Server 는 OpenFx 접근 제어 기능을 제공하는 서버이다.
+* Database 연동을 통해 사용자 권한에 맞는 접근 토큰을 발급 및 검증을 수행한다.  
+
+##### Database 
+
+* Database 는 OpenFx 의 접근 제어를 위한 접근 토큰 및 사용자 정보를 저장한다. 
+
 
 
 

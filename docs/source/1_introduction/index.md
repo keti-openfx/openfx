@@ -22,7 +22,7 @@ OpenFx는 gRPC 프로토콜을 지원하고, Golang 기반의 동시성을 중�
 
 - 함수 실행 테스트 지원
 
-- CLI를 이용한 쉬운 함수 배포
+- CLI(Command Line Interface)를 이용한 쉬운 함수 배포
 
 - Auto-Scale 지원
 

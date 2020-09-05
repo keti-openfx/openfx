@@ -10,7 +10,7 @@ Requirements
 해당 워크숍에서는 쿠버네티스 클러스터에 OpenFx를 배포하고 OpenFx가
 제공하는 CLI를 설치하는 것으로 시작한다. Openfx 배포 및 CLI 설치를 위한
 문서는 `다음의
-링크 <https://github.com/keti-openfx/openfx-cli/blob/master/README.md>`__\ 에서
+링크 <../2_setup/1_cli_setup/index.md>`__\ 에서
 제공한다.
 
 Workshop composition
