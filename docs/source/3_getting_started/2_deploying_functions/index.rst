@@ -2,8 +2,7 @@ Deploying Functions
 ===================
 
 본 챕터에서는 OpenFx의 CLI(Command line interface) 명령어를 통해
-사용자가 정의한 함수를 빌드하고 배포하여 호출되기까지의 과정에서
-사용되는 CLI 명령어 사용법과 그 과정에 대해서 자세히 다룬다.
+사용자가 정의한 함수를 빌드, 배포, 호출되기까지의 과정을 다룬다.
 
 OpenFx CLI command
 ------------------
