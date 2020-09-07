@@ -5,13 +5,9 @@ Deploying Functions
 
 
 
-
-
 ## Get Started
 
-`openfx-cli`를 설치했다면 `openfx-cli` 에서 제공하는 명령어를 사용하여 함수 생성 및 배포를 시작할 수 있다. go언어를 사용하여  `echo`함수를 만드는 예제를 통해 OpenFx에 함수를 만들어 호출해보자.
-
-
+`openfx-cli`를 설치했다면 `openfx-cli` 에서 제공하는 명령어를 사용하여 함수 생성 및 배포를 시작할 수 있다. go언어를 사용하여  `echo`함수를 만드는 예제를 통해 OpenFx에 함수를 만들어 보자.
 
 
 
@@ -36,14 +32,12 @@ Deploying Functions
   새로운 함수를 생성하면 현재 경로 디렉토리 안에 함수 이름과 같은 디렉토리가 생성된다. 디렉토리의 내부 구조는 다음과 같다.
 
   ```
-.
-  ├── config.yaml
-  ├── Dockerfile
+echo
+  └── config.yaml
+  └── Dockerfile
   └── src
-      └── handler.go
+       └──handler.go
   ```
-
-
 
 
 
@@ -52,7 +46,7 @@ Deploying Functions
 
 - Handler 코드 작성 
 
-  다음은 함수 내에서 실행되는 예제 코드이다. 사용자는 다음의 예제 코드를 응용하여 함수의 실행 코드를 작성할 수 있다. 
+  다음은 기본적으로 생성되는 go언어의 함수 템플릿이다. 템플릿 코드는 입력된 데이터를 그대로 반환해주는 `echo`함수이다. 사용자는 다음의 예제코드를 응용하여 함수의 실행 코드를 작성할 수 있다.
 
   - handler.go
 
@@ -80,8 +74,6 @@ Deploying Functions
 
 
 
-
-
 ### Build Function
 
 - 작성한 함수를 OpenFx에 배포하기 위한 도커 이미지 생성
@@ -95,8 +87,6 @@ Deploying Functions
   Image: ketiasuscomm.com:5000/echo built in local environment.
   ```
   
-
-
 
 
 
@@ -122,8 +112,6 @@ Deploying Functions
 
 
 
-
-
 ### Deploy Function
 
 - 생성된 도커 이미지를 통해 OpenFx에 함수 배포
@@ -143,8 +131,6 @@ Deploying Functions
 
 
 
-
-
 ### Confirm Function
 
 - OpenFx에 배포가 완료된 함수의 목록 확인
@@ -159,8 +145,6 @@ Deploying Functions
 
 
 
-
-
 ### Call Function
 
 - OpenFx에 배포된 함수 호출
@@ -171,8 +155,6 @@ Deploying Functions
    Hello
   ```
   
-
-
 
 
 
@@ -194,8 +176,6 @@ Deploying Functions
      openfx_fn: echo
   ```
   
-
-
 
 
 
