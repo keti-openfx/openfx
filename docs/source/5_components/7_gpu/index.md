@@ -139,6 +139,9 @@ $ sudo vim /etc/docker/daemon.json
         }
     }
 }
+
+$ sudo systemctl daemon-reload
+$ sudo service docker restart
 ```
 
 
