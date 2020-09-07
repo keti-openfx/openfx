@@ -1,7 +1,7 @@
-CLI Setup
-====================================
+# CLI Setup
 
 OpenFx-cli는 OpenFx를 사용하기 위한 Command Line Interface 도구이다. OpenFx 서비스들은 OpenFx-cli를 활용하여 생성, 빌드, 배포, 테스트가 가능하다. Openfx-cli 설치 방법은 다음의 과정을 통해 진행한다. 
+
 
 
 
@@ -12,7 +12,6 @@ OpenFx-cli는 OpenFx를 사용하기 위한 Command Line Interface 도구이다.
 - [docker version >= 18.06](<https://docs.docker.com/get-docker/>) 
 
   > Note
-
   > OS에 맞게 설치 요망
 
 - [OpenFx-Gateway & Executor 구동]()
@@ -39,6 +38,7 @@ $ service docker restart
 ### Compile OpenFx-CLI
 
 - `openfx-cli` 저장소를 __keti-openfx__ 디렉토리 밑에 클론하여 컴파일을 진행한다. 
+
 
   ```bash
   $ cd $GOPATH/src/github.com/keti-openfx

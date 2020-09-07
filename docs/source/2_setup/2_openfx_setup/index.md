@@ -1,13 +1,14 @@
-OpenFx Setup
-====================================
+# OpenFx Setup
 
 이번에는 OpenFx 프레임워크 구성을 위한 쿠버네티스 클러스터(Kubernetes Cluster) 설치와 OpenFx 설치법에 대해 가이드한다. 
+
 
  
 
 ## Configuration
 
 쿠버네티스 클러스터(Kubernetes Cluster) 위에서 OpenFx를 동작시키기 위해서는 기본적으로 다음과 같은 최소 사양이 만족되어야 한다.
+
 
 - `프로세서 코어` >= 2
 - `메모리` >= 8GB
@@ -23,6 +24,7 @@ OpenFx Setup
 - 하나 혹은 다수의 물리 서버(가상 머신)를 묶어 `ansible playbook`으로 구축
 - 미니쿠베(Minikube)를 통해 구축 
 
+
 다음은 위의 두 가지 방식을 통해 쿠버네티스 클러스터를 구축하는 방법에 대한 가이드이다. 
 
 
@@ -30,8 +32,6 @@ OpenFx Setup
 ### Ansible을 통한 쿠버네티스 클러스터 구축
 
 `Ansible`은 파이썬 기반의 IaC(Infrastructure as Code)를 지향하는 자동화 관리 도구이다. 사용자는 `Ansible`을 통해 여러 머신에 소프트웨어 패키지를 동시에 설치하여 인프라 시스템 구축 자동화를 달성할 수 있다. 본 가이드에서는 `Ansible`기반의 `kubespray`를 활용하여 손쉽게 쿠버네티스 클러스터를 구축하는 방법을 안내한다. 아래는 `kubespray`를 통해 쿠버네티스 클러스터를 구축하는 방법에 대해 설명한다. 
-
-
 
 #### Copy ssh key
 
@@ -176,6 +176,7 @@ kube-system   nginx-proxy-node2                         1/1     Running     1   
 
 아래는 미니쿠베 설치 방법과 미니쿠베 환경 위에서 쿠버네티스를 사용할 수 있게 해주는 명령 줄 인터페이스인 `kubectl`의 설치 방법을 가이드한다. 
 
+
  
 
 #### Install Virtual Machine
@@ -185,6 +186,7 @@ kube-system   nginx-proxy-node2                         1/1     Running     1   
 > Note
 >
 > 가상 머신이 아닌 호스트 OS 환경(리눅스)이라면, 가상 머신 설치를 생략한다. 
+
 
 
 
@@ -200,10 +202,6 @@ kube-system   nginx-proxy-node2                         1/1     Running     1   
   $ sudo mv minikube /usr/local/bin
   ```
 
-
-
-
-
 #### Start Minikube
 
 미니쿠베는 기본적으로 [하이퍼바이저(hypervisor)](<https://kubernetes.io/ko/docs/setup/learning-environment/minikube/#vm-%EB%93%9C%EB%9D%BC%EC%9D%B4%EB%B2%84-%EC%A7%80%EC%A0%95%ED%95%98%EA%B8%B0>)를 지원한다. 윈도우 환경과 같이 리눅스 시스템이 아닌 경우 하이퍼바이저를 먼저 설치한다. 하이퍼바이저란 virtualbox, vmware 같이 물리적 호스트에서 다수의 가상머신을 실행할 수 있도록 하여 컴퓨팅 자원을 효과적으로 사용할 수 있게 하는 도구이다. 
@@ -215,8 +213,6 @@ $ echo export CHANGE_MINIKUBE_NONE_USER=true >> ~/.bashrc
 $ sudo minikube start --driver=<driver_name> --kubernetes-version v1.15.2 --insecure-registry="<IP ADDRESS>:<PORT>"
 ```
 
-
-
 하이퍼바이저 설치를 하지 않았다면 `--driver=none` 플래그를 통해 미니쿠베를 시작할 수도 있다.
 
 ```bash
@@ -227,8 +223,6 @@ $ sudo minikube start --driver=none --kubernetes-version v1.15.2 --insecure-regi
 > Note
 >
 > `<IP ADDRESS>:<PORT>` 는 도커 레지스트리 서버의 주소와 포트번호를 적어주어야 한다. 
-
-
 
 추가로 `minikube start`의 다양한 플래그가 궁금하다면 다음의 명령어를 입력하여 원하는 정보를 얻을 수 있다.
 
@@ -289,7 +283,6 @@ $ sudo minikube addons enable metrics-server
   $ sudo mv ./kubectl /usr/local/bin/kubectl
   $ kubectl version
   ```
-
 
 
 
@@ -750,4 +743,3 @@ openfx        grafana-import-dashboards-tnskf    1/1     Running            0   
 
 - `STATUS`가 **Running**이 아닌 경우에는 [링크](https://kubernetes.io/ko/docs/reference/kubectl/cheatsheet/)를 참조하여 포드의 로그를 확인한다.
 - `kubectl apply`를 통해 배포되는 pod 중 prometheus는 컴퓨팅 자원들의 metric 정보를 수집하는 모니터링 툴이며, grafana는 prometheus를 통해 수집된 metric 정보들을 시각화해주는 툴이다.
-
