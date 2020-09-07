@@ -1,7 +1,7 @@
 Invoke Internal Service
 ====================================
 
-마이크로 서비스 구조의 서버리스 프레임워크인 OpenFx에서 함수는 독립적으로 배포가 가능하며 개별적으로 실행될 수 있는 하나의 서비스로 정의된다. OpenFx에 배포되어 있는 서비스 내부에서 다른 서비스를 호출할 수 있으며, 이를 통해 사용자는 서로 다른 서비스를 엮어 원하는 기능의 애플리케이션 서비스를 완성할 수 있다.
+OpenFx의 함수는 독립적으로 배포가 가능하며 개별적으로 실행될 수 있는 하나의 서비스로 정의된다. OpenFx에 배포된 서비스는 내부에서 다른 서비스를 호출할 수 있으며, 이를 통해 사용자는 서로 다른 서비스를 엮어 원하는 기능의 애플리케이션 서비스를 완성할 수 있다.
 
 본 챕터에서는 OpenFx에 배포되어 있는 서비스를 호출하는 방법에 대해서 알아본다. 
 
@@ -164,5 +164,5 @@ OpenFx에서 서비스 간 호출을 하기 위해서는 다음과 같은 일련
 
 
 
-Handler 코드 작성 후에, 다음 [링크](http://github.com/keti-openfx/openfx/docs/source/3_getting_started/2_deploying_functions/index.rst)의 #Build Function부터 순차적으로 진행하면 다른 서비스를 호출하는 함수가 OpenFx에 배포된다. 호출 시에는 사용자가 엮은 서비스의 시작점에 있는 서비스를 호출해야 정상적으로 호출된다.
+Handler 코드 작성 후에, 다음 [링크](https://keti-openfx.readthedocs.io/en/latest/3_getting_started/2_deploying_functions/index.html)의 **Build Function**부터 순차적으로 진행하면 다른 서비스를 호출하는 함수가 OpenFx에 배포된다. 호출 시에는 사용자가 엮은 서비스의 시작점에 있는 서비스를 호출해야 정상적으로 호출된다.
 
