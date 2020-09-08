@@ -34,7 +34,7 @@ OpenFx는 gRPC 프로토콜을 지원하고, Golang 기반의 동시성을 중�
 
 ## Introduction of OpenFx®
 
-[![Architecture of the OpenFx](./OpenFx_Architecture_auth.png)](https://github.com/keti-openfx/openfx/blob/master/OpenFx_Architecture.png)
+[![Architecture of the OpenFx](./OpenFx_Architecture.png)](https://github.com/keti-openfx/openfx/blob/master/OpenFx_Architecture.png)
 
 ### Technical overview
 

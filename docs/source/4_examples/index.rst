@@ -8,10 +8,8 @@ Requirements
 ~~~~~~~~~~~~
 
 해당 워크숍에서는 쿠버네티스 클러스터에 OpenFx를 배포하고 OpenFx가
-제공하는 CLI를 설치하는 것으로 시작한다. Openfx 배포 및 CLI 설치를 위한
-문서는 `다음의
-링크 <../2_setup/1_cli_setup/index.md>`__\ 에서
-제공한다.
+제공하는 CLI를 설치하는 것으로 시작한다. CLI 설치를 위한 문서는 `다음의
+링크 <../2_setup/1_cli_setup/index.md>`__\ 에서 제공한다.
 
 Workshop composition
 ~~~~~~~~~~~~~~~~~~~~
@@ -29,14 +27,32 @@ Workshop composition
 +----------------------+----------------------------------------------------------------------------------------------------+
 | Json Unmarshalling   | Golang Json 형식의 데이터 처리 함수                                                                |
 +----------------------+----------------------------------------------------------------------------------------------------+
+| 인증                 | 사용자 권한에 따른 허용 API 호출 예제                                                              |
++----------------------+----------------------------------------------------------------------------------------------------+
 
 감정 분석
 ~~~~~~~~~
 
-본 예제는 OpenFx 함수를 통해 구현한 감정 분석 예제이다. 언어는
-파이썬이며 감정 분석을 위해 `TextBlob
+본 예제는 OpenFx 함수를 통해 구현한 텍스트 기반의 감정 분석 예제이다.
+언어는 파이썬이며 감정 분석을 위해 `TextBlob
 project <http://textblob.readthedocs.io/en/dev/>`__ 라이브러리를
 사용하였다.
+
+.. figure:: ./sentiment.png
+   :alt: sentiment
+
+   sentiment
+
+.. raw:: html
+
+   <center> 
+
+Sentiment Analysis
+
+.. raw:: html
+
+   </center>
+
 
 Write function
 ^^^^^^^^^^^^^^
@@ -124,8 +140,17 @@ Test
 Image Processing
 ~~~~~~~~~~~~~~~~
 
-본 예제는 OpenFx 함수를 통해 이미지 프로세싱을 처리한다.
+본 예제는 OpenFx 함수를 통해 구현한 이미지 프로세싱 예제이다. 본
+예제에서는 입력받은 이미지 해상도를 함수에서 지정한 해상도로 변환하는
+예제이다. 언어는 파이썬이며 이미지 프로세싱을 위해
+`ffmpeg <https://github.com/kkroening/ffmpeg-python>`__,
+`opencv <https://pypi.org/project/opencv-python/>`__ 라이브러리를
+사용하였다.
 
+.. figure:: ./processing.png
+   :alt: processing
+
+   processing
 Prerequirement
 ^^^^^^^^^^^^^^
 
@@ -362,6 +387,14 @@ Init
         args = parser.parse_args()
         c = Client()
 
+``class : Client`` : 이미지 프로세싱을 위한 모듈이다.
+
+-  ``__init__`` : 모듈 초기화 로직으로 이미지 넓이와 폭값을 지정하고
+   이미지 입력받는 함수 ``_listen_for_messages``\ 를 쓰레드로 실행한다.
+-  ``Capture`` : gRPC 를 위한 정보 입력과 발신 메세지를 처리한다.
+
+``'__main__'`` : 클라이언트 모듈 초기화에 필요한 값을 전달한다.
+
 Test
 ^^^^
 
@@ -561,9 +594,9 @@ MQTT Broker 실행시 IOT 기기에서 입력을 받기를 기다리며 IOT 기�
 Crawling Bot
 ~~~~~~~~~~~~
 
-본 예제는 OpenFx 함수를 통해 구현한 크롤링 봇 예제이다. 본 예제에서의
-함수는 네이버 홈페이지의 뉴스 헤드 이슈를 크롤링한다. 언어는 파이썬이며
-감정 분석을 위해
+본 예제는 OpenFx 함수를 통해 구현한 크롤링 봇 예제이다. 본 예제는 네이버
+홈페이지의 뉴스 헤드 이슈를 크롤링한다. 언어는 파이썬이며 감정 분석을
+위해
 `BeautifulSoup <https://www.crummy.com/software/BeautifulSoup/bs4/doc/>`__
 사용하였다.
 
