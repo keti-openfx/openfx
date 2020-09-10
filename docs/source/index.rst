@@ -18,13 +18,14 @@ For support and additional product information, join the active Nuclio Slack wor
 Table of Contents
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
+   :glob:
    :caption: Contents:
 
    1_introduction/index
    2_setup/index
    3_getting_started/index
-   4_examples/index
+   4_examples/*
    5_components/index
    6_roadmap/index
    7_references/index
