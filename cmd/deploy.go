@@ -36,6 +36,7 @@ type DeployHandlerConfig struct {
 	EnableHttpProbe   bool
 	ImagePullPolicy   string
 	FxWatcherPort     int
+	FxMeshPort        int
 	SecretMountPath   string
 }
 
@@ -80,7 +81,7 @@ func Deploy(req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, conf
 	log.Println("Created deployment - " + req.Service)
 
 	service := clientset.Core().Services(config.FunctionNamespace)
-	serviceSpec := makeServiceSpec(req, config.FxWatcherPort)
+	serviceSpec := makeServiceSpec(req, config.FxWatcherPort, config.FxMeshPort)
 	_, err = service.Create(serviceSpec)
 
 	if err != nil {
@@ -220,6 +221,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 							Image: req.Image,
 							Ports: []apiv1.ContainerPort{
 								{ContainerPort: int32(config.FxWatcherPort), Protocol: v1.ProtocolTCP},
+								{ContainerPort: int32(config.FxMeshPort), Protocol: v1.ProtocolTCP},
 							},
 							Env:             envVars,
 							Resources:       *resources,
@@ -242,7 +244,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 	return deploymentSpec, nil
 }
 
-func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int) *v1.Service {
+func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int, fxMeshPort int) *v1.Service {
 	serviceSpec := &v1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
@@ -260,10 +262,20 @@ func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int) *v1.Servi
 			Ports: []v1.ServicePort{
 				{
 					Protocol: v1.ProtocolTCP,
+					Name:     "fxwatcher",
 					Port:     int32(fxWatcherPort),
 					TargetPort: intstr.IntOrString{
 						Type:   intstr.Int,
 						IntVal: int32(fxWatcherPort),
+					},
+				},
+				{
+					Protocol: v1.ProtocolTCP,
+					Name:     "fxmesh",
+					Port:     int32(fxMeshPort),
+					TargetPort: intstr.IntOrString{
+						Type:   intstr.Int,
+						IntVal: int32(fxMeshPort),
 					},
 				},
 			},

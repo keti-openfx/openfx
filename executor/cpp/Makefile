@@ -60,7 +60,7 @@ all: fxwatcher
 ##########################################
 # Make executable file with static library
 ##########################################
-fxwatcher: fxwatcher.pb.o fxwatcher.grpc.pb.o server.o
+fxwatcher: fxwatcher.pb.o fxwatcher.grpc.pb.o server.o mesh.o
 	$(CXX) $^ $(LDFLAGS) -o $@ 
 
 ##########################################
