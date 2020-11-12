@@ -24,6 +24,15 @@ function Call(call, callback) {
 		callback(null, {Output: handler(call.request.input)});
 }
 
+fs.writeFileSync('/tmp/.lock', '', function (err) {
+  if (err) throw err;
+  console.log('Writing lock-file to /tmp/.lock');
+});
+
+fs.chmodSync('/tmp/.lock', 0o660);
+console.log('Change chmod /tmp/.lock')
+
+
 /**
  * Starts an RPC server that receives requests for the Greeter service at the
  * sample server port
@@ -32,12 +41,8 @@ function main() {
   var server = new grpc.Server();
   server.addService(fx_proto.FxWatcher.service, {Call: Call});
   server.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure());
+  console.log("Start Server")
   server.start();
 }
 
-fs.writeFile('/tmp/.lock', '', function (err) {
-  if (err) throw err;
-  console.log('Writing lock-file to /tmp/.lock');
-});
-fs.chmodSync('/tmp/.lock', 0660);
 main();
