@@ -184,6 +184,32 @@ const (
         ]
       }
     },
+    "/system/scale": {
+      "post": {
+        "operationId": "Scale",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/pbMessage"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbScaleRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FxGateway"
+        ]
+      }
+    },
     "/system/scale-function": {
       "put": {
         "operationId": "ReplicaUpdate",
@@ -335,6 +361,21 @@ const (
       "properties": {
         "Msg": {
           "type": "string"
+        }
+      }
+    },
+    "pbScaleRequest": {
+      "type": "object",
+      "properties": {
+        "NameSpace": {
+          "type": "string"
+        },
+        "FunctionName": {
+          "type": "string"
+        },
+        "Replicas": {
+          "type": "string",
+          "format": "uint64"
         }
       }
     },

@@ -1,0 +1,35 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: fx-idler
+  namespace: openfx
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fx-idler
+    spec:
+      serviceAccountName: fxgateway
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: fx-idler
+          image: 10.0.0.52:5000/fx-idler:0.1.0
+          imagePullPolicy: Always
+          env:
+            - name: gateway_url
+              value: "10.0.0.52:31113/"
+            - name: prometheus_host
+              value: "prometheus.openfx"
+            - name: prometheus_port
+              value: "9090"
+            - name: inactivity_duration
+              value: "15m"
+            - name: reconcile_interval
+              value: "1m"
+            - name: write_debug
+              value: "true"
+          command:
+            - /home/app/fx-idler
+            - -dry-run=false

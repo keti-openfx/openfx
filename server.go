@@ -13,6 +13,7 @@ import (
 	"github.com/keti-openfx/openfx/config"
 	"github.com/keti-openfx/openfx/metrics"
 	"github.com/keti-openfx/openfx/pb"
+	"github.com/keti-openfx/openfx/scaling"
 	"github.com/soheilhy/cmux"
 	"golang.org/x/net/trace"
 	"google.golang.org/grpc"
@@ -31,15 +32,28 @@ type FxGateway struct {
 	metricsFetcher metrics.PrometheusQueryFetcher /* prometheus 클라이언트 */
 
 	events trace.EventLog
+	
+	scaler scaling.FunctionScaler /* AutoScaling Zero */
 }
 
 // FxGateway 생성
 func NewFxGateway(c config.FxGatewayConfig, k *kubernetes.Clientset) *FxGateway {
+	
+	scalingConfig := scaling.ScalingConfig{
+		MaxPollCount:         uint(1000),
+		SetScaleRetries:      uint(20),
+		FunctionPollInterval: time.Millisecond * 500,
+		CacheExpiry:          time.Second * 15, // freshness of replica values before going stale
+	}
+	scalingFunctionCache := scaling.NewFunctionCache(scalingConfig.CacheExpiry)
+
+
 	gw := &FxGateway{
 		conf:           c,
 		kubeClient:     k,
 		metricsOptions: metrics.BuildMetricsOptions(),
 		metricsFetcher: metrics.NewPrometheusQuery(c.PrometheusHost, c.PrometheusPort, &http.Client{}),
+		scaler: scaling.NewFunctionScaler(scalingConfig, scalingFunctionCache, k), 
 	}
 
 	if EnableTracing {
@@ -53,6 +67,22 @@ func NewFxGateway(c config.FxGatewayConfig, k *kubernetes.Clientset) *FxGateway 
 /* grpc handler
  * function 호출*/
 func (f *FxGateway) Invoke(c context.Context, s *pb.InvokeServiceRequest) (*pb.Message, error) {
+
+	// Scale return 
+	res := f.scaler.Scale(s.Service, f.conf.FunctionNamespace)
+
+	if !res.Found {
+		errStr := fmt.Errorf("error finding function %s.%s: %s", s.Service, f.conf.FunctionNamespace, res.Error.Error())
+		log.Printf("Scaling: %s\n", errStr)
+		return nil, errStr
+	}
+
+	if res.Error != nil {
+		errStr := fmt.Errorf("error finding function %s.%s: %s", s.Service, f.conf.FunctionNamespace, res.Error.Error())
+		log.Printf("Scaling: %s\n", errStr)
+		return nil, errStr
+	}
+	
 	start := time.Now()
 	output, err := cmd.Invoke(s.Service, f.conf.FunctionNamespace, f.conf.FxWatcherPort, s.Input, f.conf.InvokeTimeout)
 	end := time.Since(start)
@@ -130,6 +160,18 @@ func (f *FxGateway) GetMeta(c context.Context, s *pb.FunctionRequest) (*pb.Funct
 	fn = metrics.AddMetricsFunction(fn, f.metricsFetcher)
 	///////////////////////////////////////////////////////////////////////////
 	return fn, nil
+}
+
+// grpc handler
+// Scale to Set Function Replicas 
+func (f *FxGateway) Scale(c context.Context, s *pb.ScaleRequest) (*pb.Message, error) {
+
+	setScaleErr := scaling.SetReplicas(s.FunctionName,  f.conf.FunctionNamespace, int(s.Replicas), f.kubeClient)
+	if setScaleErr != nil {
+		return nil, setScaleErr
+	}
+
+	return &pb.Message{Msg: "OK"}, nil
 }
 
 // grpc handler

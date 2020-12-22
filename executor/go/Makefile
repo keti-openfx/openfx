@@ -1,4 +1,4 @@
-registry=keti.asuscomm.com:5000
+registry=10.0.0.52:5000
 version=0.1.0
 go_version=1.9.7
 

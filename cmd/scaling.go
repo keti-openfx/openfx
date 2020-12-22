@@ -12,7 +12,7 @@ import (
 var (
 	cache                FunctionCache
 	maxPollCount         = uint(1000)
-	functionPollInterval = time.Millisecond * 10
+	functionPollInterval = time.Millisecond * 500
 )
 
 func init() {

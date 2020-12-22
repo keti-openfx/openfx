@@ -1,4 +1,4 @@
-registry=keti.asuscomm.com:5000
+registry=10.0.0.52:5000
 version=0.1.0
 
 all: proto python2 python3

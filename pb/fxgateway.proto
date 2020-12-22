@@ -46,6 +46,13 @@ service FxGateway {
       body: "*"
     };
   }
+  rpc Scale(ScaleRequest) returns(Message) {
+    option (google.api.http) = {
+      post: "/system/scale"
+      body: "*"
+    };
+  }
+
   rpc Info(Empty) returns(Message) {
     option (google.api.http) = {
       get: "/system/info"
@@ -119,4 +126,10 @@ message FunctionResources {
   string Memory = 1;
   string CPU = 2;
   string GPU = 3;
+}
+
+message ScaleRequest {
+  string NameSpace = 1;
+  string FunctionName = 2;
+  uint64 Replicas = 3;
 }
