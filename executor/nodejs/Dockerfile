@@ -7,7 +7,7 @@ RUN mkdir -p /openfx/executor
 WORKDIR /openfx/executor
 
 COPY . .
-
+RUN npm install -g npm@7.0.10
 RUN npm install grpc
 RUN npm install @grpc/proto-loader
 

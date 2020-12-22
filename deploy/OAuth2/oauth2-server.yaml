@@ -41,3 +41,22 @@ spec:
         ports:
         - containerPort: 9096
           protocol: TCP
+      - name: oauth2-mysql
+        image: mysql:5.7
+        ports:
+        - name: oauth2-mysql
+          containerPort: 3306
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: oauth2-db-secrets
+                key: db-password
+        volumeMounts:
+        - mountPath: "/var/lib/mysql"
+          name: mysql-storage
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim
+

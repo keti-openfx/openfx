@@ -52,13 +52,22 @@ func ValidateServiceName(service string) error {
 	return fmt.Errorf("(%s) must be a valid DNS entry for service name", service)
 }
 
-func Deploy(req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, config *DeployHandlerConfig) error {
+func Deploy(token Access_info, req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, config *DeployHandlerConfig) error {
 	if err := ValidateServiceName(req.Service); err != nil {
 		return status.Error(codes.InvalidArgument, err.Error())
 	}
-	log.Printf("Deploying... \ndeploy handler config:%+v\n create function request:%+v\n", config, req)
+	log.Printf("Deploying... \n deploy handler config:%+v \n create function request:%+v \n", config, req)
 
-	existingSecrets, err := getSecrets(clientset, config.FunctionNamespace, req.Secrets)
+	// 1. 개발자 관리자 권한시 통과 및 라벨 추가 작업 필요
+	if token.Grade == "admin" {
+		req.Labels["admin"] = token.User_id
+	} else if token.Grade == "dev" {
+		req.Labels["dev"] = token.User_id
+	} else {
+		return status.Error(codes.PermissionDenied, "PermissionDenied")
+	}
+
+	existingSecrets, err := getSecrets(clientset, token.Scope, req.Secrets)
 	if err != nil {
 		return status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -68,7 +77,7 @@ func Deploy(req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, conf
 		return status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	deploy := clientset.Extensions().Deployments(config.FunctionNamespace)
+	deploy := clientset.Extensions().Deployments(token.Scope)
 	_, err = deploy.Create(deploymentSpec)
 	if err != nil {
 		if k8sErrors.IsAlreadyExists(err) {
@@ -77,9 +86,7 @@ func Deploy(req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, conf
 		return status.Error(codes.Internal, err.Error())
 	}
 
-	log.Println("Created deployment - " + req.Service)
-
-	service := clientset.Core().Services(config.FunctionNamespace)
+	service := clientset.Core().Services(token.Scope)
 	serviceSpec := makeServiceSpec(req, config.FxWatcherPort)
 	_, err = service.Create(serviceSpec)
 
@@ -90,13 +97,11 @@ func Deploy(req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, conf
 		return status.Error(codes.Internal, err.Error())
 	}
 
-	log.Println("Created service - " + req.Service)
-
 	hpaSpec, err := makeAutoscaleSpec(req)
 	if err != nil {
 		return status.Error(codes.InvalidArgument, err.Error())
 	}
-	deployHPA := clientset.AutoscalingV2beta1().HorizontalPodAutoscalers(config.FunctionNamespace)
+	deployHPA := clientset.AutoscalingV2beta1().HorizontalPodAutoscalers(token.Scope)
 	_, err = deployHPA.Create(hpaSpec)
 	if err != nil {
 		if k8sErrors.IsAlreadyExists(err) {
@@ -105,7 +110,7 @@ func Deploy(req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, conf
 		return status.Error(codes.Internal, err.Error())
 	}
 
-	log.Println("Created HPA deployment - " + req.Service)
+	log.Printf("Created envi%v function" + req.Service)
 
 	return nil
 }
@@ -346,8 +351,6 @@ func int32p(i int32) *int32 {
 
 func createSelector(constraints []string) map[string]string {
 	selector := make(map[string]string)
-
-	log.Println(constraints)
 	if len(constraints) > 0 {
 		for _, constraint := range constraints {
 			parts := strings.Split(constraint, "=")

@@ -4,7 +4,6 @@ package pb;
 
 service FxWatcher {
   rpc Call(Request) returns(Reply) {}
-  rpc Calls(stream Request) returns (stream Response) {}
 }
 
 message Request {

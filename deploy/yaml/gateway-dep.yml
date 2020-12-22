@@ -15,19 +15,16 @@ spec:
         - name: regcred
       containers:
       - name: fxgateway
-        image: 10.0.0.91:5000/fxgateway:0.1.0
+        image: 10.0.0.91:5000/fxgateway:0.1.2
         imagePullPolicy: Always
-
         env:
         - name: FUNCTION_NAMESPACE
           value: openfx-fn
         - name: IMAGE_PULL_POLICY
           value: "Always"
-
         ports:
         - containerPort: 10000
           protocol: TCP
-
         resources:
           requests:
             memory: 250Mi

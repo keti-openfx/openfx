@@ -85,7 +85,7 @@ func AddMetricsFunction(fn *pb.Function, prometheusQuery PrometheusQueryFetcher)
 	expr := url.QueryEscape(q)
 	results, fetchErr := prometheusQuery.Fetch(expr)
 	if fetchErr != nil {
-		log.Printf("Error querying Prometheus API: %s\n", fetchErr.Error())
+		//log.Printf("Error querying Prometheus API: %s\n", fetchErr.Error())
 		return fn
 	}
 
@@ -114,8 +114,7 @@ func AddMetricsFunctions(fns []*pb.Function, prometheusQuery PrometheusQueryFetc
 	results, fetchErr := prometheusQuery.Fetch(expr)
 
 	if fetchErr != nil {
-		log.Printf("Error querying Prometheus API: %s\n", fetchErr.Error())
-
+		//log.Printf("Error querying Prometheus API: %s\n", fetchErr.Error())
 		return fns
 	}
 

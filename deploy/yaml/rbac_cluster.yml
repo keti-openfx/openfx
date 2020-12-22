@@ -14,6 +14,20 @@ rules:
   - ""
   resources:
   - services
+  - persistentvolumes
+  - persistentvolumeclaims
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+  - update
+- apiGroups:
+  - "extensions"
+  resources:
+  - ingresses
   verbs:
   - get
   - list
@@ -29,6 +43,20 @@ rules:
   - get
   - list
   - watch
+  - create
+  - update
+  - delete 
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - delete
 - apiGroups:
   - extensions
   resources:

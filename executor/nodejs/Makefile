@@ -1,4 +1,4 @@
-registry=keti.asuscomm.com:5000
+registry=10.0.0.91:5000
 version=0.1.0
 node_version=13.1.0
 
