@@ -23,7 +23,7 @@ Automatically Scale Module that OpenFx functions to zero replicas after a period
 
 ![arc](./image/arc2.png)
 
-The logic can be checked through the following link.
+The logic can be checked through the [following link](https://github.com/keti-openfx/openfx/blob/3f54111f472b8d3936008ef432a8a3ba6cd11c5c/server.go#L69).
 
 
 
