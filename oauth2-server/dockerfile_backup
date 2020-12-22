@@ -1,0 +1,36 @@
+FROM golang:1.13.4 as builder
+
+RUN mkdir -p /go/src/github.com/keti-openfx/oauth2
+
+WORKDIR /go/src/github.com/keti-openfx/oauth2
+
+COPY . .
+
+WORKDIR /go/src/github.com/keti-openfx/oauth2/example/server
+
+ENV GO111MODULE=on
+
+#RUN go build server.go
+RUN CGO_ENABLED=0 GOOS=linux go build --ldflags "-s -w" \
+	-a -installsuffix cgo -o .
+
+
+FROM alpine:3.7
+
+RUN addgroup -S app \
+	&& adduser -S -g app app \
+	&& apk --no-cache add \
+	&& mkdir /etc/docker \
+	ca-certificates
+
+RUN mkdir /home/app/db && chmod 755 /home/app/db 
+WORKDIR /home/app
+
+EXPOSE 9096
+
+COPY --from=builder /go/src/github.com/keti-openfx/oauth2/example/server/ .
+RUN chown -R app:app ./
+
+USER app
+
+CMD ["./server"]

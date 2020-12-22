@@ -1,0 +1,20 @@
+FROM golang:1.13.4 as builder
+
+RUN mkdir -p /go/src/github.com/keti-openfx/oauth2
+
+WORKDIR /go/src/github.com/keti-openfx/oauth2
+
+COPY . .
+
+WORKDIR /go/src/github.com/keti-openfx/oauth2/example/server
+RUN chmod 755 -R /go/src/github.com/keti-openfx/oauth2/example/server/
+
+ENV GO111MODULE=on
+
+#RUN go build server.go
+RUN CGO_ENABLED=0 GOOS=linux go build --ldflags "-s -w" \
+	-a -installsuffix cgo -o .
+
+
+EXPOSE 9096
+CMD ["./server"]
