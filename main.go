@@ -16,8 +16,6 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	log.Printf("Kubernetes Host: %s\n", conf.Host)
-
 	/* 주어진 config을 위한 clienteset 반환 */
 	clientset, err := kubernetes.NewForConfig(conf)
 	if err != nil {

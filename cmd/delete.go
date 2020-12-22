@@ -74,8 +74,8 @@ func deleteFunction(functionName, functionNamespace string, clientset *kubernete
 	}
 
 	if hpaErr := clientset.AutoscalingV2beta1().
-                HorizontalPodAutoscalers(functionNamespace).
-                Delete(functionName, opts); hpaErr != nil {
+		HorizontalPodAutoscalers(functionNamespace).
+		Delete(functionName, opts); hpaErr != nil {
 
 		if errors.IsNotFound(hpaErr) {
 			return status.Error(codes.NotFound, hpaErr.Error())

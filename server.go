@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"runtime"
 	"time"
 
@@ -26,12 +28,15 @@ const (
 	authServerURL = "http://10.0.0.91:30011"
 )
 
-type access_info struct {
+/*
+type Access_info struct {
 	Client_id  string `json:"client_id"`
 	Expires_in int    `json:"expires_in"`
 	Scope      string `json:"scope"`
 	User_id    string `json:"user_id"`
+	Grade      string `json:"grade"`
 }
+*/
 
 /* FxGateway는 gRPC service 구현체 */
 type FxGateway struct {
@@ -64,11 +69,40 @@ func NewFxGateway(c config.FxGatewayConfig, k *kubernetes.Clientset) *FxGateway 
 	return gw
 }
 
+func IsAuth(fnList []*pb.Function, serviceName string) bool {
+	for _, fn := range fnList {
+		if fn.Name == serviceName {
+			return true
+		}
+	}
+	return false
+}
+
 /* grpc handler
  * function 호출*/
 func (f *FxGateway) Invoke(c context.Context, s *pb.InvokeServiceRequest) (*pb.Message, error) {
+
+	target, err := GetTokenData(s.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	fnList, err := cmd.List(target, f.kubeClient)
+	if err != nil {
+		return nil, err
+	}
+
+	IsAccessble := IsAuth(fnList, s.Service)
+	if !IsAccessble {
+		log.Printf("[Unauthorized] Invoke / User : %v, Namespaces : %v, function : %v", target.User_id, target.Scope, s.Service)
+		return &pb.Message{Msg: "This is an unauthorized function call.\n"}, nil
+	}
+
 	start := time.Now()
-	output, err := cmd.Invoke(s.Service, f.conf.FunctionNamespace, f.conf.FxWatcherPort, s.Input, f.conf.InvokeTimeout)
+	// log 입력 필요
+	log.Printf("[Authorized] Invoke / User : %v, Namespaces : %v, function : %v", target.User_id, target.Scope, s.Service)
+	output, err := cmd.Invoke(s.Service, target.Scope, f.conf.FxWatcherPort, s.Input, f.conf.InvokeTimeout)
+
 	end := time.Since(start)
 	if err != nil {
 		return nil, err
@@ -80,28 +114,136 @@ func (f *FxGateway) Invoke(c context.Context, s *pb.InvokeServiceRequest) (*pb.M
 	return &pb.Message{Msg: output}, nil
 }
 
-// grpc handler
-// function list 조회
-func (f *FxGateway) List(c context.Context, s *pb.TokenRequest) (*pb.Functions, error) {
-	log.Println(s.Token)
-
-	// //정보값 전송 후 받아오기
-	resp, err := http.Get(fmt.Sprintf("%s/verify/user?access_token=%s", authServerURL, s.Token))
+//grpc handler
+//네임스페이스 생성
+func (f *FxGateway) Create(c context.Context, s *pb.CreateNamespaceRequest) (*pb.Message, error) {
+	err := cmd.Create(s, f.kubeClient)
 	if err != nil {
 		return nil, err
 	}
+	return &pb.Message{Msg: "Create Namespaces"}, nil
+}
+
+// grpc handler
+// Login
+func (f *FxGateway) Login(c context.Context, s *pb.LoginRequest) (*pb.LoginResponse, error) {
+
+	target, err := GetTokenData(s.Token)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("successfuly Token")
+
+	resp, err := http.Get("http://10.0.0.91:30366/api/requestIDE-URL/" + target.Client_id + "/" + target.User_id)
+	if err != nil {
+		panic(err)
+	}
 	defer resp.Body.Close()
 
-	var target access_info
-	json.NewDecoder(resp.Body).Decode(&target)
+	log.Println("successfuly requestIDE-URL")
 
-	log.Println(target.Scope)
+	// 결과 출력
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	IDE_url := string(data)
+
+	log.Println(IDE_url)
+
+	if IDE_url != "null" { // null check
+		return &pb.LoginResponse{Msg: "[Login] Succeed"}, nil
+	} else { // IDE 구성 환경 구축
+
+		deployConfig := &cmd.DeployHandlerConfig{
+			EnableHttpProbe:   f.conf.EnableHttpProbe,
+			ImagePullPolicy:   f.conf.ImagePullPolicy,
+			FunctionNamespace: f.conf.FunctionNamespace,
+			FxWatcherPort:     4000,
+			SecretMountPath:   f.conf.SecretMountPath,
+		}
+
+		s.Member = target.Scope + "-" + target.User_id
+
+		log.Println("before ")
+		IDEurl, err := cmd.CreateIDE(s, f.kubeClient, deployConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		log.Println(IDEurl)
+
+		// URL 서버에 URL 정보 전달
+		resp_url, err := http.PostForm("http://10.0.0.91:30366/api/user", url.Values{"UserID": {target.User_id}, "url": {IDEurl}, "ClientID": {target.Client_id}})
+		if err != nil {
+			panic(err)
+		}
+		defer resp_url.Body.Close()
+
+		return &pb.LoginResponse{Msg: "[Login] Succeed"}, nil
+	}
+}
+
+// grpc handler
+func (f *FxGateway) StartIDE(c context.Context, s *pb.StartRequest) (*pb.StartResponse, error) {
+	// 1. 토큰 권한 확인
+
+	target, err := GetTokenData(s.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. url 반환받기
+	resp, err := http.Get("http://10.0.0.91:30366/api/requestIDE-URL/" + target.Client_id + "/" + target.User_id)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body) // byte[] "\"10.0.0.91:3030\"" ?
+	if err != nil {
+		panic(err)
+	}
+
+	type Ide struct {
+		IDE string
+	}
+
+	Ide_info := Ide{}
+
+	jsonErr := json.Unmarshal(data, &Ide_info)
+	if jsonErr != nil {
+		return &pb.StartResponse{IDE: "[Incorrect approach Error] IDE creation is required."}, nil
+	}
+
+	if Ide_info.IDE != "null" {
+		return &pb.StartResponse{IDE: Ide_info.IDE}, nil
+	}
+
+	return &pb.StartResponse{IDE: "[Incorrect approach Error] IDE creation is required."}, nil
+}
+
+// grpc handler
+// Login
+func (f *FxGateway) ExitIDE(c context.Context, s *pb.ExitRequest) (*pb.ExitResponse, error) {
+	return &pb.ExitResponse{Msg: s.Token}, nil
+}
+
+// grpc handler
+// function list 조회
+func (f *FxGateway) List(c context.Context, s *pb.TokenRequest) (*pb.Functions, error) {
+
+	// //정보값 전송 후 받아오기
+	target, err := GetTokenData(s.Token)
+	if err != nil {
+		return nil, err
+	}
+
 	if target.Scope == "" {
 		return nil, errors.New("Input Valid Access Token")
 	}
 
-	functions, err := cmd.AccessList(f.conf.FunctionNamespace, f.kubeClient, target.Scope)
-	//functions, err := cmd.List(target.Scope, f.kubeClient)
+	functions, err := cmd.List(target, f.kubeClient)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +257,11 @@ func (f *FxGateway) List(c context.Context, s *pb.TokenRequest) (*pb.Functions, 
 // grpc handler
 // function 배포
 func (f *FxGateway) Deploy(c context.Context, s *pb.CreateFunctionRequest) (*pb.Message, error) {
+	target, err := GetTokenData(s.Token)
+	if err != nil {
+		return nil, err
+	}
+
 	deployConfig := &cmd.DeployHandlerConfig{
 		EnableHttpProbe:   f.conf.EnableHttpProbe,
 		ImagePullPolicy:   f.conf.ImagePullPolicy,
@@ -122,7 +269,8 @@ func (f *FxGateway) Deploy(c context.Context, s *pb.CreateFunctionRequest) (*pb.
 		FxWatcherPort:     f.conf.FxWatcherPort,
 		SecretMountPath:   f.conf.SecretMountPath,
 	}
-	err := cmd.Deploy(s, f.kubeClient, deployConfig)
+
+	err = cmd.Deploy(target, s, f.kubeClient, deployConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +280,27 @@ func (f *FxGateway) Deploy(c context.Context, s *pb.CreateFunctionRequest) (*pb.
 // grpc handler
 // function 삭제
 func (f *FxGateway) Delete(c context.Context, s *pb.DeleteFunctionRequest) (*pb.Message, error) {
-	err := cmd.Delete(s.FunctionName, f.conf.FunctionNamespace, f.kubeClient)
+
+	target, err := GetTokenData(s.Token) // ?
+	if err != nil {
+		return nil, err
+	}
+
+	if target.Grade == "user" {
+		return nil, errors.New("This is an unauthorized API.")
+	}
+
+	fnList, err := cmd.List(target, f.kubeClient)
+	if err != nil {
+		return nil, err
+	}
+
+	IsAccessble := IsAuth(fnList, s.FunctionName)
+	if !IsAccessble {
+		return &pb.Message{Msg: "This is an unauthorized function call."}, errors.New("did not delete: not found function")
+	}
+
+	err = cmd.Delete(s.FunctionName, target.Scope, f.kubeClient)
 	if err != nil {
 		return nil, err
 	}
@@ -142,10 +310,27 @@ func (f *FxGateway) Delete(c context.Context, s *pb.DeleteFunctionRequest) (*pb.
 // grpc handler
 // function 업데이트
 func (f *FxGateway) Update(c context.Context, s *pb.CreateFunctionRequest) (*pb.Message, error) {
-	err := cmd.Update(f.conf.FunctionNamespace, s, f.kubeClient, f.conf.SecretMountPath)
+
+	target, err := GetTokenData(s.Token)
 	if err != nil {
 		return nil, err
 	}
+
+	fnList, err := cmd.List(target, f.kubeClient)
+	if err != nil {
+		return nil, err
+	}
+
+	IsAccessble := IsAuth(fnList, s.Service)
+	if !IsAccessble {
+		return &pb.Message{Msg: "This is an unauthorized function call."}, errors.New("did not update: not found function")
+	}
+
+	err = cmd.Update(target.Scope, s, f.kubeClient, f.conf.SecretMountPath)
+	if err != nil {
+		return nil, err
+	}
+
 	return &pb.Message{Msg: "OK"}, nil
 }
 
@@ -176,7 +361,13 @@ func (f *FxGateway) GetLog(c context.Context, s *pb.FunctionRequest) (*pb.Messag
 // grpc handler
 // function의 복제본 수 업데이트
 func (f *FxGateway) ReplicaUpdate(c context.Context, s *pb.ScaleServiceRequest) (*pb.Message, error) {
-	err := cmd.ReplicaUpdate(f.conf.FunctionNamespace, s, f.kubeClient)
+
+	target, err := GetTokenData(s.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	err = cmd.ReplicaUpdate(target.Scope, s, f.kubeClient)
 	if err != nil {
 		return nil, err
 	}
@@ -208,8 +399,8 @@ func (f *FxGateway) HealthCheck(c context.Context, s *pb.Empty) (*pb.Message, er
 func (f *FxGateway) Start() error {
 
 	/* For Monitoring **********************************************************/
-	/*
-		/* 매트릭 정보를 수집하는 Exporter를 생성 */
+
+	/* 매트릭 정보를 수집하는 Exporter를 생성 */
 	exporter := metrics.NewExporter(f.metricsOptions)
 	// 5초마다 function들의 Replica(복제본 수) 정보  수집
 	servicePollInterval := time.Second * 5
@@ -272,4 +463,24 @@ func (f *FxGateway) Start() error {
 
 	// Start Multiplexer
 	return tcpMux.Serve()
+}
+
+func GetTokenData(token string) (cmd.Access_info, error) {
+
+	// cmd list 랑 service Name 가져와서 in 하고 있으면 true 없으면 false return 하는 로직
+	resp, err := http.Get(fmt.Sprintf("%s/verify?access_token=%s", authServerURL, token))
+	if err != nil {
+		return cmd.Access_info{}, err
+	}
+	defer resp.Body.Close()
+
+	var target cmd.Access_info
+	tokenData, _ := ioutil.ReadAll(resp.Body)
+
+	jsonErr := json.Unmarshal(tokenData, &target)
+	if jsonErr != nil {
+		return cmd.Access_info{}, fmt.Errorf("cannot parse result from OpenFx on URL: %s\n%s", tokenData, jsonErr.Error())
+	}
+
+	return target, nil
 }

@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
-	"strings"
 
 	"github.com/keti-openfx/openfx/pb"
 	"google.golang.org/grpc/codes"
@@ -12,34 +12,28 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func AccessList(functionNamespace string, clientset *kubernetes.Clientset, accessfunctions string) ([]*pb.Function, error) {
-	getOpts := metav1.GetOptions{}
-	functions := []*pb.Function{}
-	accessfunction := strings.Split(accessfunctions, " ")
+//struct를  매개변수로 날리고 싶을 떄 어떻게 해야함 ?
+func List(token Access_info, clientset *kubernetes.Clientset) ([]*pb.Function, error) {
 
-	for i := 0; i < len(accessfunction); i++ {
-		item, err := clientset.ExtensionsV1beta1().Deployments(functionNamespace).Get(accessfunction[i], getOpts)
+	listOpts := metav1.ListOptions{}
 
-		if err != nil {
-			log.Println(err)
-			return nil, status.Error(codes.Internal, err.Error())
+	if token.Grade == "admin" {
+		listOpts = metav1.ListOptions{
+			LabelSelector: "openfx_fn",
 		}
-
-		function := readFunction(*item)
-		if function != nil {
-			functions = append(functions, function)
+	} else if token.Grade == "dev" {
+		label := fmt.Sprintf("openfx_fn, dev=%s", token.User_id)
+		listOpts = metav1.ListOptions{
+			LabelSelector: label,
 		}
-
+	} else {
+		label := fmt.Sprintf("openfx_fn, user in (%s, )", token.User_id)
+		listOpts = metav1.ListOptions{
+			LabelSelector: label,
+		}
 	}
 
-	return functions, nil
-}
-
-func List(functionNamespace string, clientset *kubernetes.Clientset) ([]*pb.Function, error) {
-	listOpts := metav1.ListOptions{
-		LabelSelector: "openfx_fn",
-	}
-	res, err := clientset.ExtensionsV1beta1().Deployments(functionNamespace).List(listOpts)
+	res, err := clientset.ExtensionsV1beta1().Deployments(token.Scope).List(listOpts)
 
 	if err != nil {
 		log.Println(err)
@@ -53,6 +47,7 @@ func List(functionNamespace string, clientset *kubernetes.Clientset) ([]*pb.Func
 			functions = append(functions, function)
 		}
 	}
+
 	return functions, nil
 }
 

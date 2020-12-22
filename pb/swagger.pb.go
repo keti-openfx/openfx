@@ -18,6 +18,144 @@ const (
     "application/json"
   ],
   "paths": {
+    "/api/createns/{NamespaceName}": {
+      "post": {
+        "operationId": "Create",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/pbMessage"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "NamespaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbCreateNamespaceRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FxGateway"
+        ]
+      }
+    },
+    "/api/delete/{FunctionName}": {
+      "post": {
+        "operationId": "Delete",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/pbMessage"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "FunctionName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbDeleteFunctionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FxGateway"
+        ]
+      }
+    },
+    "/api/deploy": {
+      "post": {
+        "operationId": "Deploy",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/pbMessage"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbCreateFunctionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FxGateway"
+        ]
+      }
+    },
+    "/api/exit": {
+      "post": {
+        "operationId": "ExitIDE",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/pbExitResponse"
+            }
+          }
+        },
+        "tags": [
+          "FxGateway"
+        ]
+      }
+    },
+    "/api/invoke/{Service}": {
+      "post": {
+        "operationId": "Invoke",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/pbMessage"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Service",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbInvokeServiceRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FxGateway"
+        ]
+      }
+    },
     "/api/list": {
       "post": {
         "operationId": "List",
@@ -36,6 +174,84 @@ const (
             "required": true,
             "schema": {
               "$ref": "#/definitions/pbTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FxGateway"
+        ]
+      }
+    },
+    "/api/login": {
+      "post": {
+        "operationId": "Login",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/pbLoginResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbLoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FxGateway"
+        ]
+      }
+    },
+    "/api/requestIDE-URL": {
+      "post": {
+        "operationId": "StartIDE",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/pbStartResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbStartRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FxGateway"
+        ]
+      }
+    },
+    "/api/update": {
+      "post": {
+        "operationId": "Update",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/pbMessage"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbCreateFunctionRequest"
             }
           }
         ],
@@ -101,78 +317,6 @@ const (
             "in": "path",
             "required": true,
             "type": "string"
-          }
-        ],
-        "tags": [
-          "FxGateway"
-        ]
-      },
-      "delete": {
-        "operationId": "Delete",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/pbMessage"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "FunctionName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "FxGateway"
-        ]
-      }
-    },
-    "/system/functions": {
-      "post": {
-        "operationId": "Deploy",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/pbMessage"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/pbCreateFunctionRequest"
-            }
-          }
-        ],
-        "tags": [
-          "FxGateway"
-        ]
-      },
-      "put": {
-        "operationId": "Update",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/pbMessage"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/pbCreateFunctionRequest"
-            }
           }
         ],
         "tags": [
@@ -279,6 +423,36 @@ const (
         "MaxReplicas": {
           "type": "integer",
           "format": "int32"
+        },
+        "token": {
+          "type": "string"
+        }
+      }
+    },
+    "pbCreateNamespaceRequest": {
+      "type": "object",
+      "properties": {
+        "NamespaceName": {
+          "type": "string"
+        }
+      }
+    },
+    "pbDeleteFunctionRequest": {
+      "type": "object",
+      "properties": {
+        "FunctionName": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        }
+      }
+    },
+    "pbExitResponse": {
+      "type": "object",
+      "properties": {
+        "Msg": {
+          "type": "string"
         }
       }
     },
@@ -342,6 +516,40 @@ const (
         }
       }
     },
+    "pbInvokeServiceRequest": {
+      "type": "object",
+      "properties": {
+        "Service": {
+          "type": "string"
+        },
+        "Input": {
+          "type": "string",
+          "format": "byte"
+        },
+        "token": {
+          "type": "string"
+        }
+      }
+    },
+    "pbLoginRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        },
+        "Member": {
+          "type": "string"
+        }
+      }
+    },
+    "pbLoginResponse": {
+      "type": "object",
+      "properties": {
+        "Msg": {
+          "type": "string"
+        }
+      }
+    },
     "pbMessage": {
       "type": "object",
       "properties": {
@@ -359,6 +567,25 @@ const (
         "Replicas": {
           "type": "string",
           "format": "uint64"
+        },
+        "token": {
+          "type": "string"
+        }
+      }
+    },
+    "pbStartRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      }
+    },
+    "pbStartResponse": {
+      "type": "object",
+      "properties": {
+        "IDE": {
+          "type": "string"
         }
       }
     },

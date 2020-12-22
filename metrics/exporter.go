@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/keti-openfx/openfx/pb"
 	"github.com/keti-openfx/openfx/cmd"
+	"github.com/keti-openfx/openfx/pb"
 	"github.com/prometheus/client_golang/prometheus"
 	"k8s.io/client-go/kubernetes"
 )
@@ -22,6 +22,13 @@ func NewExporter(options MetricOptions) *Exporter {
 	return &Exporter{
 		metricOptions: options,
 		services:      []*pb.Function{},
+	}
+}
+
+func NewAccessToken() cmd.Access_info {
+	return cmd.Access_info{
+		Grade: "admin",
+		Scope: "",
 	}
 }
 
@@ -57,19 +64,20 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 }
 
 // StartServiceWatcher starts a ticker and collects service replica counts to expose to prometheus
-func (e *Exporter) StartServiceWatcher( functionNamespace string, 
-					clientset *kubernetes.Clientset, 
-					metricsOptions MetricOptions, 
-					interval time.Duration) {
+func (e *Exporter) StartServiceWatcher(functionNamespace string,
+	clientset *kubernetes.Clientset,
+	metricsOptions MetricOptions,
+	interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	quit := make(chan struct{})
+
+	metricadmin := NewAccessToken()
 
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-
-				services, err := cmd.List(functionNamespace, clientset)
+				services, err := cmd.List(metricadmin, clientset)
 				if err != nil {
 					log.Println(err)
 					continue

@@ -11,7 +11,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "oauth2-db"
+    path: "/mnt/data"
     type: DirectoryOrCreate
 ---
 apiVersion: v1

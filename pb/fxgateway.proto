@@ -6,8 +6,34 @@ import "google/api/annotations.proto";
 
 service FxGateway {
   rpc Invoke(InvokeServiceRequest) returns(Message) {
+      option (google.api.http) = {
+      post: "/api/invoke/{Service}"
+      body: "*" 
+    };
   }
-
+  rpc Create(CreateNamespaceRequest) returns(Message) {
+      option (google.api.http) = {
+      post: "/api/createns/{NamespaceName}"
+      body: "*" 
+    };
+  }
+  rpc Login(LoginRequest) returns(LoginResponse) {
+    option (google.api.http) = {
+      post: "/api/login"
+      body: "*"
+    };
+  }
+  rpc StartIDE(StartRequest) returns(StartResponse){
+    option (google.api.http) = {
+      post: "/api/requestIDE-URL"
+      body: "*"
+    };
+  } 
+  rpc ExitIDE(ExitRequest) returns(ExitResponse) {
+    option (google.api.http) = {
+	    post: "/api/exit" 
+    };
+  }
   rpc List(TokenRequest) returns(Functions) {
     option (google.api.http) = {
       post: "/api/list"
@@ -16,18 +42,19 @@ service FxGateway {
   }
   rpc Deploy(CreateFunctionRequest) returns(Message) {
     option (google.api.http) = {
-      post: "/system/functions"
+      post: "/api/deploy"
       body: "*"
     };
   }
   rpc Delete(DeleteFunctionRequest) returns(Message) {
     option (google.api.http) = {
-      delete: "/system/function/{FunctionName}"
+      post: "/api/delete/{FunctionName}"
+      body: "*"
     };
   }
   rpc Update(CreateFunctionRequest) returns(Message) {
     option (google.api.http) = {
-      put: "/system/functions"
+      post: "/api/update"
       body: "*"
     };
   }
@@ -58,7 +85,6 @@ service FxGateway {
     };
   }
 }
-
 message Empty {}
 
 message Message {
@@ -86,21 +112,54 @@ message CreateFunctionRequest {
   FunctionResources Requests = 10;
   int32 MinReplicas = 11;
   int32 MaxReplicas = 12;
+  string token = 13; 
+}
+
+message CreateNamespaceRequest {
+  string NamespaceName = 1;
+}
+
+message LoginRequest {                                                                                                                 
+  string token = 1;
+  string Member = 2;
+}                                                                                                                                                
+
+message LoginResponse {
+  string Msg = 1;
+}
+
+message StartRequest {
+  string token = 1;
+}
+
+message StartResponse {
+  string IDE = 1;
+}
+
+message ExitRequest {
+  string token = 1; 
+}
+
+message ExitResponse {
+  string Msg = 1;
 }
 
 message DeleteFunctionRequest {
   string FunctionName = 1;
+  string token = 2; 
 }
 
 
 message ScaleServiceRequest {
   string ServiceName = 1;
   uint64 Replicas = 2;
+  string token = 3;
 }
 
 message InvokeServiceRequest {
   string Service = 1;
   bytes Input = 2;
+  string token = 3; 
 }
 
 message FunctionRequest {
@@ -126,3 +185,5 @@ message FunctionResources {
   string CPU = 2;
   string GPU = 3;
 }
+
+

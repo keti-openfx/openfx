@@ -1,5 +1,5 @@
 REGISTRY=10.0.0.91:5000
-TAG?=0.1.0
+TAG?=0.1.2
 
 
 all: build push deploy

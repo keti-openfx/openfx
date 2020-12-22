@@ -10,5 +10,7 @@ spec:
     - port: 3306
       protocol: TCP
       targetPort: 3306
+      nodePort: 30336
   selector:
     app: oauht2-db
+  type: NodePort
