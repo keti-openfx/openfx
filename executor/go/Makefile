@@ -1,8 +1,8 @@
-registry=keti.asuscomm.com:5000
-version=0.1.0
-go_version=1.9.7
+registry=10.0.0.202:5000
+version=2.0
+go_version=1.12
 
-all: proto docker-build docker-push
+all: docker-build docker-push
 
 proto:
 	protoc -I . \

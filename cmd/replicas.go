@@ -1,8 +1,9 @@
-package cmd 
+package cmd
 
 import (
 	"fmt"
 	"log"
+	"context"
 
 	"github.com/keti-openfx/openfx/pb"
 	"google.golang.org/grpc/codes"
@@ -21,10 +22,14 @@ func ReplicaUpdate(functionNamespace string, req *pb.ScaleServiceRequest, client
 	options := metav1.GetOptions{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Deployment",
-			APIVersion: "extensions/v1beta1",
+			APIVersion: "apps/v1",
 		},
 	}
-	deployment, err := clientset.ExtensionsV1beta1().Deployments(functionNamespace).Get(functionName, options)
+
+	ctx := context.Background()
+	updateOpts := metav1.UpdateOptions{}
+
+	deployment, err := clientset.AppsV1().Deployments(functionNamespace).Get(ctx, functionName, options)
 
 	if err != nil {
 		log.Println(err)
@@ -34,7 +39,7 @@ func ReplicaUpdate(functionNamespace string, req *pb.ScaleServiceRequest, client
 	var replicas int32
 	replicas = int32(req.Replicas)
 	deployment.Spec.Replicas = &replicas
-	_, err = clientset.ExtensionsV1beta1().Deployments(functionNamespace).Update(deployment)
+	_, err = clientset.AppsV1().Deployments(functionNamespace).Update(ctx, deployment, updateOpts)
 
 	if err != nil {
 		log.Println(err)
@@ -62,9 +67,10 @@ func GetMeta(functionName string, functionNamespace string, clientset *kubernete
 
 func getService(functionNamespace string, functionName string, clientset *kubernetes.Clientset) (*pb.Function, error) {
 
+	ctx := context.Background()
 	getOpts := metav1.GetOptions{}
 
-	item, err := clientset.ExtensionsV1beta1().Deployments(functionNamespace).Get(functionName, getOpts)
+	item, err := clientset.AppsV1().Deployments(functionNamespace).Get(ctx, functionName, getOpts)
 
 	if err != nil {
 		if errors.IsNotFound(err) {

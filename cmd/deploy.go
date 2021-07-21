@@ -8,13 +8,14 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"context"
 
 	"github.com/keti-openfx/openfx/pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	apiv1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
+	v1 "k8s.io/api/apps/v1"
+	//v1beta1 "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -64,13 +65,38 @@ func Deploy(req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, conf
 		return status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	ctx := context.Background()
+	createOpts := metav1.CreateOptions{}
+	
+	persistentVolume := clientset.CoreV1().PersistentVolumes()
+	persistentVolumeSpec := makePersistentVolumeSpec(req)
+	_, err_pv := persistentVolume.Create(ctx, persistentVolumeSpec, createOpts)
+
+	if err_pv != nil {
+		if k8sErrors.IsAlreadyExists(err) {
+			return status.Error(codes.AlreadyExists, err.Error())
+		}
+		return status.Error(codes.Internal, err.Error())
+	}
+	
+	persistentVolumeClaim := clientset.CoreV1().PersistentVolumeClaims(config.FunctionNamespace)
+	persistentVolumeClaimSpec := makePersistentVolumeClaimSpec(req)
+	_, err = persistentVolumeClaim.Create(ctx, persistentVolumeClaimSpec, createOpts)
+
+	if err != nil {
+		if k8sErrors.IsAlreadyExists(err) {
+			return status.Error(codes.AlreadyExists, err.Error())
+		}
+		return status.Error(codes.Internal, err.Error())
+	}
+
 	deploymentSpec, err := makeDeploymentSpec(req, existingSecrets, config)
 	if err != nil {
 		return status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	deploy := clientset.Extensions().Deployments(config.FunctionNamespace)
-	_, err = deploy.Create(deploymentSpec)
+	deploy := clientset.AppsV1().Deployments(config.FunctionNamespace)
+	_, err = deploy.Create(ctx, deploymentSpec, createOpts)
 	if err != nil {
 		if k8sErrors.IsAlreadyExists(err) {
 			return status.Error(codes.AlreadyExists, err.Error())
@@ -80,9 +106,9 @@ func Deploy(req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, conf
 
 	log.Println("Created deployment - " + req.Service)
 
-	service := clientset.Core().Services(config.FunctionNamespace)
+	service := clientset.CoreV1().Services(config.FunctionNamespace)
 	serviceSpec := makeServiceSpec(req, config.FxWatcherPort, config.FxMeshPort)
-	_, err = service.Create(serviceSpec)
+	_, err = service.Create(ctx, serviceSpec, createOpts)
 
 	if err != nil {
 		if k8sErrors.IsAlreadyExists(err) {
@@ -98,7 +124,7 @@ func Deploy(req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, conf
 		return status.Error(codes.InvalidArgument, err.Error())
 	}
 	deployHPA := clientset.AutoscalingV2beta1().HorizontalPodAutoscalers(config.FunctionNamespace)
-	_, err = deployHPA.Create(hpaSpec)
+	_, err = deployHPA.Create(ctx, hpaSpec, createOpts)
 	if err != nil {
 		if k8sErrors.IsAlreadyExists(err) {
 			return status.Error(codes.AlreadyExists, err.Error())
@@ -111,7 +137,7 @@ func Deploy(req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, conf
 	return nil
 }
 
-func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[string]*apiv1.Secret, config *DeployHandlerConfig) (*v1beta1.Deployment, error) {
+func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[string]*apiv1.Secret, config *DeployHandlerConfig) (*v1.Deployment, error) {
 	envVars := buildEnvVars(req)
 	path := filepath.Join(os.TempDir(), ".lock")
 	probe := &apiv1.Probe{
@@ -178,24 +204,24 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 		imagePullPolicy = apiv1.PullAlways
 	}
 
-	deploymentSpec := &v1beta1.Deployment{
+	deploymentSpec := &v1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Deployment",
-			APIVersion: "extensions/v1beta1",
+			APIVersion: "apps/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: req.Service,
 		},
-		Spec: v1beta1.DeploymentSpec{
+		Spec: v1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"openfx_fn": req.Service,
 				},
 			},
 			Replicas: initialReplicas,
-			Strategy: v1beta1.DeploymentStrategy{
-				Type: v1beta1.RollingUpdateDeploymentStrategyType,
-				RollingUpdate: &v1beta1.RollingUpdateDeployment{
+			Strategy: v1.DeploymentStrategy{
+				Type: v1.RollingUpdateDeploymentStrategyType,
+				RollingUpdate: &v1.RollingUpdateDeployment{
 					MaxUnavailable: &intstr.IntOrString{
 						Type:   intstr.Int,
 						IntVal: int32(0),
@@ -220,18 +246,34 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 							Name:  req.Service,
 							Image: req.Image,
 							Ports: []apiv1.ContainerPort{
-								{ContainerPort: int32(config.FxWatcherPort), Protocol: v1.ProtocolTCP},
-								{ContainerPort: int32(config.FxMeshPort), Protocol: v1.ProtocolTCP},
+								{ContainerPort: int32(config.FxWatcherPort), Protocol: apiv1.ProtocolTCP},
+								{ContainerPort: int32(config.FxMeshPort), Protocol: apiv1.ProtocolTCP},
 							},
 							Env:             envVars,
 							Resources:       *resources,
+							VolumeMounts: []apiv1.VolumeMount{
+								{
+									Name: "servicefunction-pvc",
+									MountPath: "/data",
+								},
+							},
 							ImagePullPolicy: imagePullPolicy,
 							LivenessProbe:   probe,
 							ReadinessProbe:  probe,
 						},
 					},
-					RestartPolicy: v1.RestartPolicyAlways,
-					DNSPolicy:     v1.DNSClusterFirst,
+					Volumes: []apiv1.Volume{
+						{
+							Name: "servicefunction-pvc",
+							VolumeSource: apiv1.VolumeSource{
+								PersistentVolumeClaim: &apiv1.PersistentVolumeClaimVolumeSource{
+									ClaimName: req.Service,
+								},
+							},
+						},
+					},
+					RestartPolicy: apiv1.RestartPolicyAlways,
+					DNSPolicy:     apiv1.DNSClusterFirst,
 				},
 			},
 		},
@@ -244,8 +286,8 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 	return deploymentSpec, nil
 }
 
-func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int, fxMeshPort int) *v1.Service {
-	serviceSpec := &v1.Service{
+func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int, fxMeshPort int) *apiv1.Service {
+	serviceSpec := &apiv1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
 			APIVersion: "v1",
@@ -254,14 +296,14 @@ func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int, fxMeshPor
 			Name:        req.Service,
 			Annotations: buildAnnotations(req),
 		},
-		Spec: v1.ServiceSpec{
-			Type: v1.ServiceTypeClusterIP,
+		Spec: apiv1.ServiceSpec{
+			Type: apiv1.ServiceTypeClusterIP,
 			Selector: map[string]string{
 				"openfx_fn": req.Service,
 			},
-			Ports: []v1.ServicePort{
+			Ports: []apiv1.ServicePort{
 				{
-					Protocol: v1.ProtocolTCP,
+					Protocol: apiv1.ProtocolTCP,
 					Name:     "fxwatcher",
 					Port:     int32(fxWatcherPort),
 					TargetPort: intstr.IntOrString{
@@ -270,7 +312,7 @@ func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int, fxMeshPor
 					},
 				},
 				{
-					Protocol: v1.ProtocolTCP,
+					Protocol: apiv1.ProtocolTCP,
 					Name:     "fxmesh",
 					Port:     int32(fxMeshPort),
 					TargetPort: intstr.IntOrString{
@@ -299,11 +341,9 @@ func makeAutoscaleSpec(req *pb.CreateFunctionRequest) (*v2beta1.HorizontalPodAut
 			ScaleTargetRef: v2beta1.CrossVersionObjectReference{
 				Kind:       "Deployment",
 				Name:       req.Service,
-				APIVersion: "extensions/v1beta1",
+				APIVersion: "apps/v1",
 			},
-			//MinReplicas: int32p(initialReplicasCount),
 			MinReplicas: int32p(req.MinReplicas),
-			//MaxReplicas: int32(5),
 			MaxReplicas: req.MaxReplicas,
 			Metrics: []v2beta1.MetricSpec{
 				{
@@ -327,6 +367,80 @@ func makeAutoscaleSpec(req *pb.CreateFunctionRequest) (*v2beta1.HorizontalPodAut
 	return hpaSpec, nil
 }
 
+func makePersistentVolumeSpec(req *pb.CreateFunctionRequest) *apiv1.PersistentVolume {
+	pvSpec := &apiv1.PersistentVolume{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "PersistentVolume",
+			APIVersion: "v1",
+		},
+
+		ObjectMeta: metav1.ObjectMeta{
+			Name: req.Service,
+		},
+
+		Spec: apiv1.PersistentVolumeSpec{
+			Capacity: apiv1.ResourceList{
+				apiv1.ResourceStorage: resource.MustParse("10Gi"),
+			},
+			AccessModes: []apiv1.PersistentVolumeAccessMode{apiv1.ReadWriteOnce},
+			PersistentVolumeReclaimPolicy: apiv1.PersistentVolumeReclaimDelete,
+			StorageClassName: "local-storage",
+			PersistentVolumeSource: apiv1.PersistentVolumeSource{
+				Local: &apiv1.LocalVolumeSource{
+					Path: "/data",
+				},
+			},
+			NodeAffinity: &apiv1.VolumeNodeAffinity{
+				Required: &apiv1.NodeSelector{
+					NodeSelectorTerms: []apiv1.NodeSelectorTerm{
+						{
+							MatchExpressions: []apiv1.NodeSelectorRequirement{
+								{
+									Key: "role",
+									Operator: apiv1.NodeSelectorOpIn,
+									Values: []string{"worker"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	return pvSpec
+}
+
+func makePersistentVolumeClaimSpec(req *pb.CreateFunctionRequest) *apiv1.PersistentVolumeClaim {
+	resources := apiv1.ResourceRequirements{
+		Requests: apiv1.ResourceList{},
+	}
+
+	resources.Requests[apiv1.ResourceStorage] = resource.MustParse("2Gi")
+
+	var storageClassNamePointer *string
+	var storageClassName string
+	storageClassName = "local-storage"
+	storageClassNamePointer = &storageClassName
+
+	pvClaimSpec := &apiv1.PersistentVolumeClaim{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "PersistentVolumeClaim",
+			APIVersion: "v1",
+		},
+
+		ObjectMeta: metav1.ObjectMeta{
+			Name: req.Service,
+		},
+
+		Spec: apiv1.PersistentVolumeClaimSpec{
+			AccessModes: []apiv1.PersistentVolumeAccessMode{apiv1.ReadWriteOnce},
+			Resources: resources,
+			StorageClassName: storageClassNamePointer,
+		},
+	}
+	return pvClaimSpec
+}
+
 func buildAnnotations(request *pb.CreateFunctionRequest) map[string]string {
 	var annotations map[string]string
 	if request.Annotations != nil {
@@ -339,11 +453,11 @@ func buildAnnotations(request *pb.CreateFunctionRequest) map[string]string {
 	return annotations
 }
 
-func buildEnvVars(req *pb.CreateFunctionRequest) []v1.EnvVar {
-	envVars := []v1.EnvVar{}
+func buildEnvVars(req *pb.CreateFunctionRequest) []apiv1.EnvVar {
+	envVars := []apiv1.EnvVar{}
 
 	for k, v := range req.EnvVars {
-		envVars = append(envVars, v1.EnvVar{
+		envVars = append(envVars, apiv1.EnvVar{
 			Name:  k,
 			Value: v,
 		})
@@ -396,15 +510,15 @@ func createResources(req *pb.CreateFunctionRequest) (*apiv1.ResourceRequirements
 			}
 			resources.Limits[apiv1.ResourceCPU] = qty
 		}
-
-		// Set GPU limits
+		// Set Gpu limits
 		if req.Limits != nil && len(req.Limits.GPU) > 0 {
 			qty, err := resource.ParseQuantity(req.Limits.GPU)
 			if err != nil {
 				return resources, err
 			}
-			resources.Limits[apiv1.ResourceNvidiaGPU] = qty
+			resources.Limits["nvidia.com/gpu"] = qty
 		}
+
 	}
 
 	if req.Requests != nil {

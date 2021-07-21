@@ -81,6 +81,7 @@ message CreateFunctionRequest {
   FunctionResources Requests = 10;
   int32 MinReplicas = 11;
   int32 MaxReplicas = 12;
+  string NodeName = 13;
 }
 
 message DeleteFunctionRequest {

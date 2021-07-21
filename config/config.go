@@ -4,12 +4,6 @@ import (
 	"time"
 )
 
-/*
-const (
-	FxGatewayVersion = "0.1.0"
-)
-*/
-
 var FxGatewayVersion string
 
 type FxGatewayConfig struct {

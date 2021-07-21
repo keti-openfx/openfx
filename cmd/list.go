@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"log"
+	"context"
 
 	"github.com/keti-openfx/openfx/pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
+	//v1beta1 "k8s.io/api/extensions/v1beta1"
+	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -15,7 +17,10 @@ func List(functionNamespace string, clientset *kubernetes.Clientset) ([]*pb.Func
 	listOpts := metav1.ListOptions{
 		LabelSelector: "openfx_fn",
 	}
-	res, err := clientset.ExtensionsV1beta1().Deployments(functionNamespace).List(listOpts)
+
+	ctx := context.Background()
+
+	res, err := clientset.AppsV1().Deployments(functionNamespace).List(ctx, listOpts)
 
 	if err != nil {
 		log.Println(err)
@@ -32,7 +37,7 @@ func List(functionNamespace string, clientset *kubernetes.Clientset) ([]*pb.Func
 	return functions, nil
 }
 
-func readFunction(item v1beta1.Deployment) *pb.Function {
+func readFunction(item v1.Deployment) *pb.Function {
 	var replicas uint64
 	if item.Spec.Replicas != nil {
 		replicas = uint64(*item.Spec.Replicas)
