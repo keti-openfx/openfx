@@ -14,7 +14,8 @@
 # limitations under the License.
 #
 
-registry=keti.asuscomm.com:5000
+#registry=keti.asuscomm.com:5000
+registry=211.232.115.85:5000
 version=0.1.0
 gcc_version=8.3.0
 

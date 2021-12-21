@@ -241,6 +241,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 				},
 				Spec: apiv1.PodSpec{
 					NodeSelector: nodeSelector,
+					NodeName: "gpu01",
 					Containers: []apiv1.Container{
 						{
 							Name:  req.Service,
@@ -253,7 +254,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 							Resources:       *resources,
 							VolumeMounts: []apiv1.VolumeMount{
 								{
-									Name: "servicefunction-pvc",
+									Name: req.Service,
 									MountPath: "/data",
 								},
 							},
@@ -264,7 +265,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 					},
 					Volumes: []apiv1.Volume{
 						{
-							Name: "servicefunction-pvc",
+							Name: req.Service,
 							VolumeSource: apiv1.VolumeSource{
 								PersistentVolumeClaim: &apiv1.PersistentVolumeClaimVolumeSource{
 									ClaimName: req.Service,
@@ -396,9 +397,9 @@ func makePersistentVolumeSpec(req *pb.CreateFunctionRequest) *apiv1.PersistentVo
 						{
 							MatchExpressions: []apiv1.NodeSelectorRequirement{
 								{
-									Key: "role",
+									Key: "type",
 									Operator: apiv1.NodeSelectorOpIn,
-									Values: []string{"worker"},
+									Values: []string{"gpunode"},
 								},
 							},
 						},
@@ -433,6 +434,7 @@ func makePersistentVolumeClaimSpec(req *pb.CreateFunctionRequest) *apiv1.Persist
 		},
 
 		Spec: apiv1.PersistentVolumeClaimSpec{
+			VolumeName: req.Service,
 			AccessModes: []apiv1.PersistentVolumeAccessMode{apiv1.ReadWriteOnce},
 			Resources: resources,
 			StorageClassName: storageClassNamePointer,

@@ -1,7 +1,8 @@
-registry=keti.asuscomm.com:5000
-version=0.1.0
+registry=211.232.115.85:5000
+# version=0.1.0
+version=2.2
 
-all: proto python2 python3
+all: python2 python3
 
 clean:
 	rm -f ./*pb2.py ./*pb2_grpc.py

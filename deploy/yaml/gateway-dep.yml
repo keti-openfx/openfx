@@ -16,9 +16,10 @@ spec:
       serviceAccountName: fxgateway
       imagePullSecrets:
         - name: regcred
+      nodeName: kubernetes-master 
       containers:
       - name: fxgateway
-        image: 10.0.0.170:5000/fxgateway:2.0
+        image: 211.232.115.85:5000/fxgateway:2.2
         imagePullPolicy: Always
 
         env:

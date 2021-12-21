@@ -1,5 +1,5 @@
-REGISTRY=10.0.0.170:5000
-TAG?=2.0
+REGISTRY=211.232.115.85:5000
+TAG?=2.2
 
 
 all: build push deploy

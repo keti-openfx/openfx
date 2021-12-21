@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func main() {
+func _main() {
 	address := fmt.Sprintf("10.233.70.188:50051")
 
 	conn, err := grpc.Dial(address, grpc.WithInsecure())

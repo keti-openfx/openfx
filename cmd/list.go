@@ -14,9 +14,10 @@ import (
 )
 
 func List(functionNamespace string, clientset *kubernetes.Clientset) ([]*pb.Function, error) {
-	listOpts := metav1.ListOptions{
-		LabelSelector: "openfx_fn",
-	}
+	// listOpts := metav1.ListOptions{
+	// 	LabelSelector: "openfx_fn",
+	// }
+	listOpts := metav1.ListOptions{}
 
 	ctx := context.Background()
 
