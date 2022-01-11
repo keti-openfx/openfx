@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"context"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -14,7 +15,8 @@ import (
 func GetLog(functionName string, functionNamespace string, clientset *kubernetes.Clientset) (string, error) {
 	var opts metav1.ListOptions
 	opts.LabelSelector = fmt.Sprintf("openfx_fn=%s", functionName)
-	podList, err := clientset.CoreV1().Pods(functionNamespace).List(opts)
+	ctx := context.Background()
+	podList, err := clientset.CoreV1().Pods(functionNamespace).List(ctx, opts)
 	if err != nil {
 		log.Println(err)
 		return "", status.Error(codes.Internal, err.Error())
@@ -33,7 +35,7 @@ func GetLog(functionName string, functionNamespace string, clientset *kubernetes
 			Previous:   false,
 		}
 
-		body, err := clientset.CoreV1().Pods(functionNamespace).GetLogs(pod.Name, options).DoRaw()
+		body, err := clientset.CoreV1().Pods(functionNamespace).GetLogs(pod.Name, options).DoRaw(ctx)
 		if err != nil {
 			log.Println(err)
 			return "", status.Error(codes.Internal, err.Error())

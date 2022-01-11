@@ -5,34 +5,22 @@ RUN apt-get update && apt-get install -y \
     autoconf \
     libtool \
     pkg-config \
-    libgflags-dev \
-    libgtest-dev \
-    clang \
-    automake \
-    curl \
-    make \
-    g++ \ 
-    unzip \
-    libc++-dev
+    cmake
 
-RUN mkdir -p ${GOPATH}/src/github.com
-WORKDIR ${GOPATH}/src/github.com
-RUN git clone https://github.com/protocolbuffers/protobuf.git
-WORKDIR ${GOPATH}/src/github.com/protobuf
-RUN git submodule update --init --recursive
-RUN ./autogen.sh
-RUN ./configure
-RUN make
-RUN make check
-RUN make install
-RUN ldconfig
+ENV INSTALL_DIR=$HOME/.local
+RUN mkdir -p $INSTALL_DIR
+ENV PATH="$INSTALL_DIR/bin:$PATH"
 
-WORKDIR ${GOPATH}/src/github.com
-RUN git clone -b $(curl -L https://grpc.io/release) https://github.com/grpc/grpc
-WORKDIR ${GOPATH}/src/github.com/grpc
-RUN git submodule update --init
-RUN sed -i 's/-Werror/ /g' Makefile
-RUN make
+RUN git clone --recurse-submodules -b v1.42.0 https://github.com/grpc/grpc
+WORKDIR grpc
+RUN mkdir -p cmake/build
+WORKDIR cmake/build
+RUN cmake -DgRPC_INSTALL=ON \
+          -DgRPC_BUILD_TESTS=OFF \
+          -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+          ../..
+
+RUN make -j 2
 RUN make install
 
 RUN mkdir -p /openfx/executor
@@ -40,7 +28,4 @@ WORKDIR /openfx/executor
 COPY server.cc .
 COPY mesh.cc .
 
-COPY Makefile .
 COPY proto proto/
-RUN protoc -I proto --grpc_out=. --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` proto/fxwatcher.proto
-RUN protoc -I proto --cpp_out=. proto/fxwatcher.proto
