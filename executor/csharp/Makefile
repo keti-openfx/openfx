@@ -1,11 +1,13 @@
-registry=keti.asuscomm.com:5000
+###############################################
+#### Edit to your private registry address ####
+###############################################
+registry=keti.dev:5000
 version=0.1.0
-csharp_version=2.1
 
 all: docker-build docker-push
 
 docker-build:
-	docker build --network=host -t $(registry)/fxwatcher:$(version)-csharp --build-arg CSHARP_VERSION=$(csharp_version) .
+	docker build --network=host -t $(registry)/fxwatcher:$(version)-csharp .
 
 docker-push:
 	docker push $(registry)/fxwatcher:$(version)-csharp
