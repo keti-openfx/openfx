@@ -1,4 +1,4 @@
-REGISTRY=keti.asuscomm.com:5000
+REGISTRY=10.0.0.255/2020_privatecloud
 TAG?=0.1.0
 
 

@@ -1,0 +1,159 @@
+package main
+
+import (
+	"os"
+	"log"
+	"net"
+	"fmt"
+	"time"
+	"plugin"
+	"strconv"
+	"syscall"
+	"io/ioutil"
+	"os/signal"
+	"path/filepath"
+
+	"golang.org/x/net/context"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/reflection"
+
+	"github.com/keti-openfx/openfx/executor/go/pb"
+)
+
+type FxWatcher struct {
+	userFunction func(pb.Request) string
+}
+
+func NewFxWatcher() *FxWatcher {
+	return &FxWatcher{}
+}
+
+func (s *FxWatcher) Call(ctx context.Context, in *pb.Request) (*pb.Reply, error) {
+
+	if s.userFunction == nil {
+		statusError := status.Error(codes.Internal, "before function call, fetch first.")
+		return nil, statusError
+	}
+
+	output := s.userFunction(*in)
+	return &pb.Reply{Output: output}, nil
+}
+
+func loadUserFunction(file, function string) func(pb.Request) string {
+	p, err := plugin.Open(file)
+	if err != nil {
+		panic(err)
+	}
+	f, err := p.Lookup(function)
+	if err != nil {
+		panic("Function not found")
+	}
+	return f.(func(pb.Request) string)
+}
+
+func main() {
+
+	// network port setting
+	port := getEnvInt("PORT", 50051)
+	meshport := getEnvInt("MESH_PORT", 50052)
+
+	handlerName := getEnvString("HANDLER_NAME", "Handler")
+	// handlerFilePath := getEnvString("HANDLER_FILE", "/go/src/github.com/keti-openfx/openfx/executor/go")
+        handlerFilePath := getEnvString("HANDLER_FILE", "/root/go/src/github.com/keti-openfx/openfx/executor/go")
+
+	// register grpc Server
+	fw := NewFxWatcher()
+	fw.userFunction = loadUserFunction(handlerFilePath, handlerName)
+
+	s := grpc.NewServer()
+	pb.RegisterFxWatcherServer(s, fw)
+	
+	reflection.Register(s)
+
+	// connect to grpc connection
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		log.Panicf("[fxwatcher] failed to listen: %v\n", err)
+	}
+	defer lis.Close()
+
+	mlis, err := net.Listen("tcp", fmt.Sprintf(":%d", meshport))
+	if err != nil {
+		log.Panicf("[fxmesh] failed to listen: %v\n", err)
+	}
+	defer mlis.Close()
+
+	path, err := createLockFile()
+	if err != nil {
+		log.Panicf("Cannot write %s. Error: %s.\n", path, err.Error())
+	}
+
+	// exit Sever
+	go func() {
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, syscall.SIGTERM)
+		<-sig
+		s.GracefulStop()
+		log.Printf("[fxwatcher] received SIGTERM.")
+	}()
+
+	// serve to between gateway and executor
+	go func() {
+		log.Println("[fxwatcher] start service.")
+		if err := s.Serve(lis); err != nil {
+			log.Printf("[fxwatcher] failed to serve: %v\n", err)
+		}
+	}()
+	
+	// serve to between executors
+	log.Println("[fxmesh] start service.")
+		if err := s.Serve(mlis); err != nil {
+			log.Printf("[fxmesh] failed to serve: %v\n", err)
+		}
+}
+
+func createLockFile() (string, error) {
+	path := filepath.Join(os.TempDir(), ".lock")
+	log.Printf("Writing lock-file to: %s\n", path)
+	err := ioutil.WriteFile(path, []byte{}, 0660)
+
+	return path, err
+
+}
+
+func getEnvTime(key string, defaultValue time.Duration) time.Duration {
+	v := os.Getenv(key)
+	if v != "" {
+		parsedVal, parseErr := strconv.Atoi(v)
+		if parseErr == nil && parsedVal >= 0 {
+			return time.Duration(parsedVal) * time.Second
+		}
+	}
+
+	duration, durationErr := time.ParseDuration(v)
+	if durationErr != nil {
+		return defaultValue
+	}
+	return duration
+}
+
+func getEnvInt(key string, defaultValue int) int {
+	res := defaultValue
+	if v := os.Getenv(key); v != "" {
+		intVal, err := strconv.Atoi(v)
+		if err == nil {
+			res = intVal
+		}
+	}
+	return res
+}
+
+func getEnvString(key string, defaultValue string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return defaultValue
+}

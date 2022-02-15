@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      name: alertmanager
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+      - name: alertmanager
+        image: prom/alertmanager:latest
+        args:
+          - "--config.file=/etc/alertmanager/config.yml"
+          - "--storage.path=/alertmanager"
+        ports:
+        - name: alertmanager
+          containerPort: 9093
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/alertmanager
+        - name: alertmanager
+          mountPath: /alertmanager
+      volumes:
+      - name: config-volume
+        configMap:
+          name: alertmanager-config
+      - name: alertmanager
+        emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  annotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/path: '/alertmanager/metrics'
+  labels:
+    name: alertmanager  
+spec:
+  selector:
+    app: alertmanager
+  type: NodePort
+  ports:
+    - port: 9093
+      targetPort: 9093
+      nodePort: 31000
+
+---
+
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: alertmanager-config
+data:
+  config.yml: |-
+    global:
+      resolve_timeout: 5m
+      slack_api_url: 'https://hooks.slack.com/services/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'
+    route:
+      receiver: slack-notifications
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 10m
+      routes:
+      - match:
+          severity: slack
+        receiver: slack-notifications
+    receivers:
+    - name: 'slack-notifications'
+      slack_configs:
+      - channel: '#slacknoti'
+        send_resolved: true
+        text: "{{ .Annotations.description }}"

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"context"
 
 	"github.com/keti-openfx/openfx/pb"
 	"google.golang.org/grpc/codes"
@@ -44,10 +45,12 @@ func updateDeploymentSpec(
 	annotations map[string]string,
 	secretMountPath string) (err error) {
 
+	ctx := context.Background()
 	getOpts := metav1.GetOptions{}
-	deployment, findDeployErr := clientset.ExtensionsV1beta1().
+	updateOpts := metav1.UpdateOptions{}
+	deployment, findDeployErr := clientset.AppsV1().
 		Deployments(functionNamespace).
-		Get(request.Service, getOpts)
+		Get(ctx, request.Service, getOpts)
 
 	if findDeployErr != nil {
 		log.Println(findDeployErr)
@@ -111,9 +114,9 @@ func updateDeploymentSpec(
 		}
 	}
 
-	if _, updateErr := clientset.ExtensionsV1beta1().
+	if _, updateErr := clientset.AppsV1().
 		Deployments(functionNamespace).
-		Update(deployment); updateErr != nil {
+		Update(ctx, deployment, updateOpts); updateErr != nil {
 
 		log.Println(updateErr)
 		return status.Error(codes.Internal, updateErr.Error())
@@ -128,11 +131,13 @@ func updateService(
 	request *pb.CreateFunctionRequest,
 	annotations map[string]string) (err error) {
 
+	ctx := context.Background()
 	getOpts := metav1.GetOptions{}
+	updateOpts := metav1.UpdateOptions{}
 
 	service, findServiceErr := clientset.CoreV1().
 		Services(functionNamespace).
-		Get(request.Service, getOpts)
+		Get(ctx, request.Service, getOpts)
 
 	if findServiceErr != nil {
 		log.Println(findServiceErr)
@@ -143,7 +148,7 @@ func updateService(
 
 	if _, updateErr := clientset.CoreV1().
 		Services(functionNamespace).
-		Update(service); updateErr != nil {
+		Update(ctx, service, updateOpts); updateErr != nil {
 
 		log.Println(updateErr)
 		return status.Error(codes.Internal, updateErr.Error())
@@ -158,10 +163,12 @@ func updateHPA(
 	request *pb.CreateFunctionRequest,
 	annotations map[string]string) (err error) {
 
+	ctx := context.Background()
 	getOpts := metav1.GetOptions{}
+	updateOpts := metav1.UpdateOptions{}
 	hpa, findHPAErr := clientset.AutoscalingV2beta1().
 		HorizontalPodAutoscalers(functionNamespace).
-		Get(request.Service, getOpts)
+		Get(ctx, request.Service, getOpts)
 
 	if findHPAErr != nil {
 		log.Println(findHPAErr)
@@ -174,7 +181,7 @@ func updateHPA(
 
 	if _, updateErr := clientset.AutoscalingV2beta1().
 		HorizontalPodAutoscalers(functionNamespace).
-		Update(hpa); updateErr != nil {
+		Update(ctx, hpa, updateOpts); updateErr != nil {
 
 		log.Println(updateErr)
 		return status.Error(codes.Internal, updateErr.Error())
@@ -183,3 +190,33 @@ func updateHPA(
 	return nil
 }
 
+func updatePVC(
+	functionNamespace string,
+	clientset *kubernetes.Clientset,
+	request *pb.CreateFunctionRequest,
+	annotations map[string]string) (err error) {
+
+	ctx := context.Background()
+	getOpts := metav1.GetOptions{}
+	updateOpts := metav1.UpdateOptions{}
+	pvc, findPVCErr := clientset.CoreV1().
+		PersistentVolumeClaims(functionNamespace).
+		Get(ctx, request.Service, getOpts)
+
+	if findPVCErr != nil {
+		log.Println(findPVCErr)
+		return status.Error(codes.NotFound, findPVCErr.Error())
+	}
+
+	pvc.Annotations = annotations
+
+	if _, updateErr := clientset.CoreV1().
+		PersistentVolumeClaims(functionNamespace).
+		Update(ctx, pvc, updateOpts); updateErr != nil {
+
+		log.Println(updateErr)
+		return status.Error(codes.Internal, updateErr.Error())
+	}
+
+	return nil
+}

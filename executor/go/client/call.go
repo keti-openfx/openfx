@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/openfx/openfx/fxwatcher/go/pb"
+	"github.com/keti-openfx/openfx/executor/go/pb"
 	"google.golang.org/grpc"
 )
 

@@ -1,5 +1,5 @@
 # Build fxwatcher
-FROM golang:1.12
+FROM golang:1.16
 
 ENV GO111MODULE=on
 
@@ -8,8 +8,6 @@ WORKDIR ${GOPATH}/src/github.com/keti-openfx/openfx/executor/go
 
 COPY . .
 
-RUN go mod vendor -v
-
-RUN gofmt -l -d $(find . -type f -name '*.go' -not -path "./vendor/*")
+RUN go get github.com/minio/minio-go
 RUN go build -o fxwatcher .
 

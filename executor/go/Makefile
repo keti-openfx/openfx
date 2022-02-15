@@ -1,8 +1,9 @@
-registry=keti.asuscomm.com:5000
+registry=10.0.0.255/2020_privatecloud
 version=0.1.0
-go_version=1.9.7
+#go_version=1.12
+go_version=1.16
 
-all: proto docker-build docker-push
+all: docker-build docker-push
 
 proto:
 	protoc -I . \
