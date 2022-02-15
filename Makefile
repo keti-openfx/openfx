@@ -1,5 +1,5 @@
-REGISTRY=10.0.0.170:5000
-TAG?=2.0
+REGISTRY=10.0.0.255/2020_privatecloud
+TAG?=0.1.0
 
 
 all: build push deploy

@@ -1,12 +1,13 @@
 package cmd
 
 import (
-	"log"
 	"context"
+	"log"
 
 	"github.com/keti-openfx/openfx/pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
 	//v1beta1 "k8s.io/api/extensions/v1beta1"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,10 +15,7 @@ import (
 )
 
 func List(functionNamespace string, clientset *kubernetes.Clientset) ([]*pb.Function, error) {
-	listOpts := metav1.ListOptions{
-		LabelSelector: "openfx_fn",
-	}
-
+	listOpts := metav1.ListOptions{}
 	ctx := context.Background()
 
 	res, err := clientset.AppsV1().Deployments(functionNamespace).List(ctx, listOpts)

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -8,13 +9,13 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"context"
 
 	"github.com/keti-openfx/openfx/pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	apiv1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/apps/v1"
+	apiv1 "k8s.io/api/core/v1"
+
 	//v1beta1 "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -67,29 +68,29 @@ func Deploy(req *pb.CreateFunctionRequest, clientset *kubernetes.Clientset, conf
 
 	ctx := context.Background()
 	createOpts := metav1.CreateOptions{}
-	
-	persistentVolume := clientset.CoreV1().PersistentVolumes()
-	persistentVolumeSpec := makePersistentVolumeSpec(req)
-	_, err_pv := persistentVolume.Create(ctx, persistentVolumeSpec, createOpts)
+	/*
+		persistentVolume := clientset.CoreV1().PersistentVolumes()
+		persistentVolumeSpec := makePersistentVolumeSpec(req)
+		_, err_pv := persistentVolume.Create(ctx, persistentVolumeSpec, createOpts)
 
-	if err_pv != nil {
-		if k8sErrors.IsAlreadyExists(err) {
-			return status.Error(codes.AlreadyExists, err.Error())
+		if err_pv != nil {
+			if k8sErrors.IsAlreadyExists(err) {
+				return status.Error(codes.AlreadyExists, err.Error())
+			}
+			return status.Error(codes.Internal, err.Error())
 		}
-		return status.Error(codes.Internal, err.Error())
-	}
-	
-	persistentVolumeClaim := clientset.CoreV1().PersistentVolumeClaims(config.FunctionNamespace)
-	persistentVolumeClaimSpec := makePersistentVolumeClaimSpec(req)
-	_, err = persistentVolumeClaim.Create(ctx, persistentVolumeClaimSpec, createOpts)
 
-	if err != nil {
-		if k8sErrors.IsAlreadyExists(err) {
-			return status.Error(codes.AlreadyExists, err.Error())
+		persistentVolumeClaim := clientset.CoreV1().PersistentVolumeClaims(config.FunctionNamespace)
+		persistentVolumeClaimSpec := makePersistentVolumeClaimSpec(req)
+		_, err = persistentVolumeClaim.Create(ctx, persistentVolumeClaimSpec, createOpts)
+
+		if err != nil {
+			if k8sErrors.IsAlreadyExists(err) {
+				return status.Error(codes.AlreadyExists, err.Error())
+			}
+			return status.Error(codes.Internal, err.Error())
 		}
-		return status.Error(codes.Internal, err.Error())
-	}
-
+	*/
 	deploymentSpec, err := makeDeploymentSpec(req, existingSecrets, config)
 	if err != nil {
 		return status.Error(codes.InvalidArgument, err.Error())
@@ -174,7 +175,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 
 	initialReplicas := int32p(initialReplicasCount)
 	labels := map[string]string{
-		"openfx_fn": req.Service,
+		"kubesphere_openfx_fn_system": "user_fn",
 	}
 
 	if req.Labels != nil {
@@ -215,7 +216,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 		Spec: v1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"openfx_fn": req.Service,
+					"kubesphere_openfx_fn_system": "user_fn",
 				},
 			},
 			Replicas: initialReplicas,
@@ -241,6 +242,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 				},
 				Spec: apiv1.PodSpec{
 					NodeSelector: nodeSelector,
+					//NodeName: "gpu01",
 					Containers: []apiv1.Container{
 						{
 							Name:  req.Service,
@@ -249,29 +251,33 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 								{ContainerPort: int32(config.FxWatcherPort), Protocol: apiv1.ProtocolTCP},
 								{ContainerPort: int32(config.FxMeshPort), Protocol: apiv1.ProtocolTCP},
 							},
-							Env:             envVars,
-							Resources:       *resources,
-							VolumeMounts: []apiv1.VolumeMount{
-								{
-									Name: "servicefunction-pvc",
-									MountPath: "/data",
+							Env:       envVars,
+							Resources: *resources,
+							/*
+								VolumeMounts: []apiv1.VolumeMount{
+									{
+										Name: req.Service,
+										MountPath: "/data",
+									},
 								},
-							},
+							*/
 							ImagePullPolicy: imagePullPolicy,
 							LivenessProbe:   probe,
 							ReadinessProbe:  probe,
 						},
 					},
-					Volumes: []apiv1.Volume{
-						{
-							Name: "servicefunction-pvc",
-							VolumeSource: apiv1.VolumeSource{
-								PersistentVolumeClaim: &apiv1.PersistentVolumeClaimVolumeSource{
-									ClaimName: req.Service,
+					/*
+						Volumes: []apiv1.Volume{
+							{
+								Name: req.Service,
+								VolumeSource: apiv1.VolumeSource{
+									PersistentVolumeClaim: &apiv1.PersistentVolumeClaimVolumeSource{
+										ClaimName: req.Service,
+									},
 								},
 							},
 						},
-					},
+					*/
 					RestartPolicy: apiv1.RestartPolicyAlways,
 					DNSPolicy:     apiv1.DNSClusterFirst,
 				},
@@ -299,7 +305,7 @@ func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int, fxMeshPor
 		Spec: apiv1.ServiceSpec{
 			Type: apiv1.ServiceTypeClusterIP,
 			Selector: map[string]string{
-				"openfx_fn": req.Service,
+				"kubesphere_openfx_fn_system": "user_fn",
 			},
 			Ports: []apiv1.ServicePort{
 				{
@@ -367,6 +373,7 @@ func makeAutoscaleSpec(req *pb.CreateFunctionRequest) (*v2beta1.HorizontalPodAut
 	return hpaSpec, nil
 }
 
+/*
 func makePersistentVolumeSpec(req *pb.CreateFunctionRequest) *apiv1.PersistentVolume {
 	pvSpec := &apiv1.PersistentVolume{
 		TypeMeta: metav1.TypeMeta{
@@ -396,9 +403,9 @@ func makePersistentVolumeSpec(req *pb.CreateFunctionRequest) *apiv1.PersistentVo
 						{
 							MatchExpressions: []apiv1.NodeSelectorRequirement{
 								{
-									Key: "role",
+									Key: "type",
 									Operator: apiv1.NodeSelectorOpIn,
-									Values: []string{"worker"},
+									Values: []string{"gpunode"},
 								},
 							},
 						},
@@ -433,6 +440,7 @@ func makePersistentVolumeClaimSpec(req *pb.CreateFunctionRequest) *apiv1.Persist
 		},
 
 		Spec: apiv1.PersistentVolumeClaimSpec{
+			VolumeName: req.Service,
 			AccessModes: []apiv1.PersistentVolumeAccessMode{apiv1.ReadWriteOnce},
 			Resources: resources,
 			StorageClassName: storageClassNamePointer,
@@ -440,7 +448,7 @@ func makePersistentVolumeClaimSpec(req *pb.CreateFunctionRequest) *apiv1.Persist
 	}
 	return pvClaimSpec
 }
-
+*/
 func buildAnnotations(request *pb.CreateFunctionRequest) map[string]string {
 	var annotations map[string]string
 	if request.Annotations != nil {

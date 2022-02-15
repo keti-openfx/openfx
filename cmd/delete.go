@@ -1,10 +1,12 @@
 package cmd
 
 import (
-	"log"
 	"context"
+	"log"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
 	//v1beta1 "k8s.io/api/extensions/v1beta1"
 	v1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -46,7 +48,7 @@ func Delete(functionName, functionNamespace string, clientset *kubernetes.Client
 func isFunction(deployment *v1.Deployment) bool {
 	if deployment != nil {
 		log.Println("Deleted service function ...")
-		if _, found := deployment.Spec.Template.ObjectMeta.Labels["openfx_fn"]; found {
+		if _, found := deployment.Spec.Template.ObjectMeta.Labels["kubesphere_openfx_fn_system"]; found {
 			return true
 		}
 	}
@@ -80,34 +82,35 @@ func deleteFunction(functionName, functionNamespace string, clientset *kubernete
 	}
 
 	if hpaErr := clientset.AutoscalingV2beta1().
-                HorizontalPodAutoscalers(functionNamespace).
-                Delete(ctx, functionName, opts); hpaErr != nil {
+		HorizontalPodAutoscalers(functionNamespace).
+		Delete(ctx, functionName, opts); hpaErr != nil {
 
 		if errors.IsNotFound(hpaErr) {
 			return status.Error(codes.NotFound, hpaErr.Error())
 		}
 		return status.Error(codes.Internal, hpaErr.Error())
 	}
-	
-	if pvErr := clientset.CoreV1().
-		PersistentVolumes().
-		Delete(ctx, functionName, opts); pvErr != nil {
-		
-		if errors.IsNotFound(pvErr) {
-			return status.Error(codes.NotFound, pvErr.Error())
-		}
-		return status.Error(codes.Internal, pvErr.Error())
-	}
+	/*
+		if pvErr := clientset.CoreV1().
+			PersistentVolumes().
+			Delete(ctx, functionName, opts); pvErr != nil {
 
-	if pvcErr := clientset.CoreV1().
-		PersistentVolumeClaims(functionNamespace).
-		Delete(ctx, functionName, opts); pvcErr != nil {
-
-		if errors.IsNotFound(pvcErr) {
-			return status.Error(codes.NotFound, pvcErr.Error())
+			if errors.IsNotFound(pvErr) {
+				return status.Error(codes.NotFound, pvErr.Error())
+			}
+			return status.Error(codes.Internal, pvErr.Error())
 		}
-		return status.Error(codes.Internal, pvcErr.Error())
-	}
+
+		if pvcErr := clientset.CoreV1().
+			PersistentVolumeClaims(functionNamespace).
+			Delete(ctx, functionName, opts); pvcErr != nil {
+
+			if errors.IsNotFound(pvcErr) {
+				return status.Error(codes.NotFound, pvcErr.Error())
+			}
+			return status.Error(codes.Internal, pvcErr.Error())
+		}
+	*/
 
 	return nil
 }
