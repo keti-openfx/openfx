@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"log"
 
 	"github.com/keti-openfx/openfx/pb"
 	"google.golang.org/grpc"
@@ -25,6 +26,10 @@ func Invoke(service string, functionNamespace string, fxWatcherPort int, input [
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
+	log.Println("cmd.Invoke - address, " + address)
+	log.Println("cmd.Invoke - timeout, " + timeout.String())
+	log.Println("cmd.Invoke - functionName, " + service)
+
 	start := time.Now()
 	r, err := c.Call(ctx, &pb.Request{Input: input, Info: &pb.Info{FunctionName: service, Trigger: &pb.Trigger{Name: "grpc", Time: time.Now().UTC().String()}}})
 	if err != nil {
@@ -33,6 +38,8 @@ func Invoke(service string, functionNamespace string, fxWatcherPort int, input [
 		}
 		return "", status.Error(codes.Internal, "could not invoke: "+service+" - "+err.Error())
 	}
+
+	log.Println("cmd.Invoke - output, " + r.Output)
 
 	return r.Output, nil
 }

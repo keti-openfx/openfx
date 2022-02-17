@@ -5,7 +5,7 @@ metadata:
   name: fxgateway
   namespace: openfx
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: fxgateway-role 
@@ -31,7 +31,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - extensions
+  - apps
   resources:
   - deployments
   verbs:
@@ -61,7 +61,7 @@ rules:
   - delete
   - update
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: fxgateway-fn-access
@@ -74,3 +74,73 @@ subjects:
 - kind: ServiceAccount
   name: fxgateway
   namespace: openfx
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fxgateway-clusterrole
+  namespace: openfx-fn
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumes
+  verbs:
+  - list
+  - get
+  - update
+  - watch
+  - create
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - list
+  - get
+  - update
+  - watch
+  - create
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: fxgateway-clusterrole
+  namespace: openfx-fn
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: fxgateway-clusterrole
+subjects:
+- kind: ServiceAccount
+  name: fxgateway
+  namespace: openfx
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: storage-clusterrole
+  namespace: openfx-fn
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: storage-clusterrole
+  namespace: openfx-fn
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: storage-clusterrole
+subjects:
+- kind: ServiceAccount
+  name: storage-provisioner
+  namespace: kube-system

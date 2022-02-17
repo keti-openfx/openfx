@@ -1,6 +1,6 @@
 var PROTO_PATH = __dirname + '/proto/fxwatcher.proto';
 
-var grpc = require('grpc');
+var grpc = require('@grpc/grpc-js');
 var protoLoader = require('@grpc/proto-loader');
 var packageDefinition = protoLoader.loadSync(
     PROTO_PATH,
@@ -30,7 +30,7 @@ fs.writeFileSync('/tmp/.lock', '', function (err) {
 });
 
 fs.chmodSync('/tmp/.lock', 0o660);
-console.log('Change chmod /tmp/.lock')
+console.log('Change chmod /tmp/.lock');
 
 
 /**
@@ -40,9 +40,10 @@ console.log('Change chmod /tmp/.lock')
 function main() {
   var server = new grpc.Server();
   server.addService(fx_proto.FxWatcher.service, {Call: Call});
-  server.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure());
-  console.log("Start Server")
-  server.start();
+  server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {
+	  server.start();
+  });
+  console.log("Start Server");
 }
 
 main();

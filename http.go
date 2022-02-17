@@ -60,6 +60,7 @@ func prepareHTTP(ctx context.Context, serverName string, functionNamespace strin
 	//// initialize grpc-gateway
 	// gRPC dialup options
 	opts := []grpc.DialOption{
+		// grpc.WithTimeout(10 * time.Second),
 		grpc.WithTimeout(10 * time.Second),
 		grpc.WithBlock(),
 		grpc.WithInsecure(),

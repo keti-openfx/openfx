@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"context"
 
 	"github.com/keti-openfx/openfx/pb"
 	apiv1 "k8s.io/api/core/v1"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
+	//v1beta1 "k8s.io/api/extensions/v1beta1"
+	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -13,9 +15,10 @@ import (
 // getSecrets queries Kubernetes for a list of secrets by name in the given k8s namespace.
 func getSecrets(clientset *kubernetes.Clientset, namespace string, secretNames []string) (map[string]*apiv1.Secret, error) {
 	secrets := map[string]*apiv1.Secret{}
+	ctx := context.Background()
 
 	for _, secretName := range secretNames {
-		secret, err := clientset.Core().Secrets(namespace).Get(secretName, metav1.GetOptions{})
+		secret, err := clientset.CoreV1().Secrets(namespace).Get(ctx, secretName, metav1.GetOptions{})
 		if err != nil {
 			return secrets, err
 		}
@@ -29,7 +32,7 @@ func getSecrets(clientset *kubernetes.Clientset, namespace string, secretNames [
 // in the kubernetes cluster.  For each requested secret, we inspect the type and add it to the
 // deployment spec as appropriat: secrets with type `SecretTypeDockercfg/SecretTypeDockerjson`
 // are added as ImagePullSecrets all other secrets are mounted as files in the deployments containers.
-func UpdateSecrets(req *pb.CreateFunctionRequest, deployment *v1beta1.Deployment, existingSecrets map[string]*apiv1.Secret, secretsMountPath string) error {
+func UpdateSecrets(req *pb.CreateFunctionRequest, deployment *v1.Deployment, existingSecrets map[string]*apiv1.Secret, secretsMountPath string) error {
 	// Add / reference pre-existing secrets within Kubernetes
 	secretVolumeProjections := []apiv1.VolumeProjection{}
 

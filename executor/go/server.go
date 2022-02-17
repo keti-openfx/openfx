@@ -1,24 +1,24 @@
 package main
 
 import (
-	"os"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
-	"fmt"
-	"time"
+	"os"
+	"os/signal"
+	"path/filepath"
 	"plugin"
 	"strconv"
 	"syscall"
-	"io/ioutil"
-	"os/signal"
-	"path/filepath"
+	"time"
 
 	"golang.org/x/net/context"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 
 	"github.com/keti-openfx/openfx/executor/go/pb"
 )
@@ -69,7 +69,7 @@ func main() {
 
 	s := grpc.NewServer()
 	pb.RegisterFxWatcherServer(s, fw)
-	
+
 	reflection.Register(s)
 
 	// connect to grpc connection
@@ -106,12 +106,12 @@ func main() {
 			log.Printf("[fxwatcher] failed to serve: %v\n", err)
 		}
 	}()
-	
+
 	// serve to between executors
 	log.Println("[fxmesh] start service.")
-		if err := s.Serve(mlis); err != nil {
-			log.Printf("[fxmesh] failed to serve: %v\n", err)
-		}
+	if err := s.Serve(mlis); err != nil {
+		log.Printf("[fxmesh] failed to serve: %v\n", err)
+	}
 }
 
 func createLockFile() (string, error) {

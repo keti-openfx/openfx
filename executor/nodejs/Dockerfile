@@ -8,6 +8,6 @@ WORKDIR /openfx/executor
 
 COPY . .
 
-RUN npm install grpc
+RUN npm install @grpc/grpc-js
 RUN npm install @grpc/proto-loader
 

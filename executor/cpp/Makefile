@@ -13,67 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-registry=keti.asuscomm.com:5000
-version=0.1.0
-gcc_version=8.3.0
-
-HOST_SYSTEM = $(shell uname | cut -f 1 -d_)
-SYSTEM ?= $(HOST_SYSTEM)
-CXX = g++
-CPPFLAGS += `pkg-config --cflags protobuf grpc`
-CXXFLAGS += -std=c++11
-###########################
-# Compile by static library
-###########################
-ifeq ($(SYSTEM),Darwin)
-LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
-           -pthread\
-           -lgrpc++_reflection\
-           -ldl\
-           -lhandler
-else
-LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
-           -pthread\
-           -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
-           -ldl\
-           -lhandler
-endif
-
-###########################
-# Compile by shared library
-###########################
-#ifeq ($(SYSTEM),Darwin)
-#LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
-#           -pthread\
-#           -lgrpc++_reflection\
-#           -ldl
-#else
-#LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
-#           -pthread\
-#           -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
-#           -ldl
-#endif
-
-all: fxwatcher   
-
-##########################################
-# Make executable file with static library
-##########################################
-fxwatcher: fxwatcher.pb.o fxwatcher.grpc.pb.o server.o mesh.o
-	$(CXX) $^ $(LDFLAGS) -o $@ 
-
-##########################################
-# Make executable file with shared library
-##########################################
-#fxwatcher: fxwatcher.pb.o fxwatcher.grpc.pb.o server.o
-#	$(CXX) $^ $(LDFLAGS) -o $@ -lhandler
-
+#registry=keti.asuscomm.com:5000
+###############################################
+#### Edit to your private registry address ####
+###############################################
+registry=10.0.0.255:5000/openfx
+version=1.0
 docker-build:
-	docker build --network=host -t $(registry)/fxwatcher:$(version)-cpp --build-arg GCC_VERSION=$(gcc_version) .
-
+	docker build --network=host -t $(registry)/fxwatcher:$(version)-cpp .
 docker-push:
 	docker push $(registry)/fxwatcher:$(version)-cpp
-
 clean:
 	rm -f *.o *.pb.cc *.pb.h fxwatcher
