@@ -1,5 +1,5 @@
-registry=211.232.115.85:5000
-version=0.1.0
+registry=10.0.0.255:5000/openfx
+version=1.0
 csharp_version=2.1
 
 all: docker-build docker-push

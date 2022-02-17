@@ -8,6 +8,5 @@ WORKDIR ${GOPATH}/src/github.com/keti-openfx/openfx/executor/go
 
 COPY . .
 
-RUN go get github.com/minio/minio-go
 RUN go build -o fxwatcher .
 

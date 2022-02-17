@@ -6,4 +6,5 @@ RUN mkdir -p /openfx/executor
 WORKDIR /openfx/executor
 
 COPY . .
+RUN chmod +x gradlew
 

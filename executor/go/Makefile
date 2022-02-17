@@ -1,6 +1,5 @@
-registry=10.0.0.255/2020_privatecloud
-version=0.1.0
-#go_version=1.12
+registry=10.0.0.255:5000/openfx
+version=1.0
 go_version=1.16
 
 all: docker-build docker-push

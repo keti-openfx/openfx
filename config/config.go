@@ -31,7 +31,7 @@ func NewFxGatewayConfig(version string) FxGatewayConfig {
 	FxGatewayVersion = version
 
 	return FxGatewayConfig{
-		FunctionNamespace: envs.GetString("FUNCTION_NAMESPACE", "kubesphere-openfx-fn-system"),
+		FunctionNamespace: envs.GetString("FUNCTION_NAMESPACE", "openfx-fn"),
 		TCPPort:           envs.GetInt("PORT", 10000),
 		InvokeTimeout:     envs.GetDuration("INVOKE_TIMEOUT", time.Second*605),
 		ReadTimeout:       envs.GetDuration("READ_TIMEOUT", time.Second*605),

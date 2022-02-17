@@ -175,7 +175,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 
 	initialReplicas := int32p(initialReplicasCount)
 	labels := map[string]string{
-		"kubesphere_openfx_fn_system": "user_fn",
+		"openfx_fn": req.Service,
 	}
 
 	if req.Labels != nil {
@@ -216,7 +216,7 @@ func makeDeploymentSpec(req *pb.CreateFunctionRequest, existingSecrets map[strin
 		Spec: v1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"kubesphere_openfx_fn_system": "user_fn",
+					"openfx_fn": req.Service,
 				},
 			},
 			Replicas: initialReplicas,
@@ -305,7 +305,7 @@ func makeServiceSpec(req *pb.CreateFunctionRequest, fxWatcherPort int, fxMeshPor
 		Spec: apiv1.ServiceSpec{
 			Type: apiv1.ServiceTypeClusterIP,
 			Selector: map[string]string{
-				"kubesphere_openfx_fn_system": "user_fn",
+				"openfx_fn": req.Service,
 			},
 			Ports: []apiv1.ServicePort{
 				{

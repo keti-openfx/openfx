@@ -62,7 +62,6 @@ func main() {
 
 	handlerName := getEnvString("HANDLER_NAME", "Handler")
 	handlerFilePath := getEnvString("HANDLER_FILE", "/go/src/github.com/keti-openfx/openfx/executor/go")
-	//handlerFilePath := getEnvString("HANDLER_FILE", "/root/go/src/github.com/keti-openfx/openfx/executor/go")
 
 	// register grpc Server
 	fw := NewFxWatcher()

@@ -1,6 +1,5 @@
-registry=211.232.115.85:5000
-# version=0.1.0
-version=2.0
+registry=10.0.0.255:5000/openfx
+version=1.0
 
 all: python2 python3
 

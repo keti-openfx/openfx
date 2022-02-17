@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fxgateway
-  namespace: kubesphere-openfx-system
+  namespace: openfx
 spec:
   replicas: 1
   selector:
@@ -14,17 +14,13 @@ spec:
         app: fxgateway
     spec:
       serviceAccountName: fxgateway
-        #imagePullSecrets:
-        #  - name: regcred
-        #nodeName: kubernetes-master 
       containers:
       - name: fxgateway
-        image: 10.0.0.255/2020_privatecloud/fxgateway:0.1.0
+        image: 10.0.0.255:5000/openfx/fxgateway:1.0
         imagePullPolicy: Always
-
         env:
         - name: FUNCTION_NAMESPACE
-          value: kubesphere-openfx-fn-system
+          value: openfx-fn
         - name: IMAGE_PULL_POLICY
           value: "Always"
 

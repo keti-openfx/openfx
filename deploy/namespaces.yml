@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: kubesphere-openfx-system
+  name: openfx
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: kubesphere-openfx-fn-system
+  name: openfx-fn
